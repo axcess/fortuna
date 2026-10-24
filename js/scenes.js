@@ -786,6 +786,71 @@ Scenes.office.alt = {
   ],
 };
 
+// The main hall, fitted to art/hall.png
+Scenes.hall.alt = {
+  key: () => [Math.floor(S.min / 30), S.board.map(p => p.status[0]).join(''), S.fac.academy].join(),
+  base(ctx) {
+    const h = Scenes.hour();
+    ctx.drawImage(Scenes.art.hall, 0, 0, SW, SH);
+    // the yard beyond the archway, and the sunlight it throws, fade with the day
+    if (h >= 17) {
+      const tint = h < 18.5 ? '#e8a070' : h < 19.5 ? '#7a5a8a' : '#2a3466';
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = tint;
+      ctx.beginPath(); ctx.moveTo(172, 116); ctx.lineTo(172, 70); ctx.quadraticCurveTo(172, 55, 190, 54); ctx.quadraticCurveTo(208, 55, 208, 70); ctx.lineTo(208, 116); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(170, 116); ctx.lineTo(210, 116); ctx.lineTo(250, 180); ctx.lineTo(140, 180); ctx.closePath(); ctx.globalAlpha = 0.3; ctx.fill();
+      ctx.restore();
+    }
+    // notices pinned to the cork
+    S.board.slice(0, 10).forEach((p, i) => {
+      const x = 61 + (i % 5) * 9.4, y = 66 + Math.floor(i / 5) * 19, tilt = Art.hash(i, p.id, 4) > 0.5 ? 1 : 0;
+      px(ctx, x + 1, y + 1 + tilt, 8, 14, 'rgba(40,24,10,0.35)');
+      px(ctx, x, y + tilt, 8, 14, p.status === 'claimed' ? RR.paper[2] : RR.paper[4]);
+      for (let k = 0; k < 4; k++) px(ctx, x + 1, y + 3 + k * 2 + tilt, k === 0 ? 6 : 4 + (k % 2) * 2, 1, RR.paper[1]);
+      px(ctx, x + 3, y, 2, 2, RR.red[4]);
+      if (p.status === 'claimed') px(ctx, x + 1, y + 10 + tilt, 6, 3, RR.green[3]);
+    });
+    // once the Academy is founded, the boarded door becomes a proper one
+    if (S.fac.academy) {
+      ctx.save(); ctx.beginPath(); ctx.rect(226, 56, 38, 40); ctx.rect(226, 96, 19, 22); ctx.clip();
+      door(ctx, 230, 60, 30, 56, RR.violet); Art.disc(ctx, 245, 70, 3, '#b8a8ff');
+      ctx.restore();
+    }
+  },
+  anim(ctx) {
+    // candle flames on the chandelier
+    const f = Math.floor(Scenes.frame / 5);
+    for (const [cx, cy] of [[138, 21], [149, 15], [156, 26], [170, 16], [175, 25], [185, 21]]) {
+      const k = (f + cx) % 3; px(ctx, cx, cy - (k === 1 ? 1 : 0), 1, 3, '#ffd866'); px(ctx, cx, cy + 1, 1, 1, '#fff6c0');
+    }
+    if (Scenes.hour() < 17.5) motes(ctx, 160, 90, 70, 60, 12);
+    // the clerk stands behind the counter (clipped so the counter hides their legs)
+    if (S.staff.clerk) {
+      ctx.save(); ctx.beginPath(); ctx.rect(240, 60, 70, 37); ctx.clip();
+      Scenes.person(ctx, 258, 110, { id: 99, look: { skin: '#e0ac7e', hair: '#222', style: 2 } }, { cloth: '#3a4a6a', glasses: true });
+      ctx.restore();
+    }
+    const w = Scenes.whereabouts().hall;
+    const seats = [[22, 160, true], [50, 160, true], [78, 160, true], [132, 168, false], [214, 170, false]];
+    Scenes.hallSpots = w.slice(0, seats.length).map((a, i) => ({ a, x: seats[i][0], y: seats[i][1], sit: seats[i][2] }));
+    for (const s of Scenes.hallSpots) Scenes.person(ctx, s.x, s.y, s.a, { sit: s.sit });
+  },
+  light(ctx, d) {
+    Art.glow(ctx, 162, 22, 70, '255,190,110', 0.08 + d * 0.5);
+    if (Scenes.hour() >= 17.5) Art.glow(ctx, 262, 102, 18, '255,210,130', d * 0.3);
+  },
+  spots: () => [
+    { x: 56, y: 60, w: 54, h: 48, label: () => `Quest board (${S.board.length} posted)`, act: () => UI.board() },
+    { x: 245, y: 94, w: 60, h: 54, label: 'Reception desk: hiring notices', act: () => UI.reception() },
+    { x: 4, y: 48, w: 38, h: 90, label: 'Door: back to your office', act: () => UI.go('office') },
+    { x: 305, y: 54, w: 15, h: 100, label: 'Door: the tavern', act: () => UI.go('tavern') },
+    { x: 276, y: 40, w: 30, h: 22, label: 'Door: the tavern', act: () => UI.go('tavern'), noTag: true },
+    { x: 168, y: 50, w: 47, h: 66, label: 'Archway: training yard', act: () => UI.go('yard') },
+    { x: 111, y: 40, w: 50, h: 78, label: 'Stairs: the inn', act: () => UI.go('inn') },
+    { x: 226, y: 57, w: 36, h: 38, label: () => S.fac.academy ? 'The Academy' : 'A boarded-up door', act: () => S.fac.academy ? UI.go('academy') : UI.say('The old lecture hall. Boarded up since Hela\'s day. The builders could reopen it, with the Council\'s blessing and enough gold.') },
+    ...(Scenes.hallSpots || []).map(s => ({ x: s.x - 8, y: s.y - 28, w: 17, h: 30, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
+  ],
+};
+
 // every scene draws through the shared compositor, using painted art when present
 for (const name of Scenes.ROOMS) {
   const sc = Scenes[name], drawnSpots = sc.spots;

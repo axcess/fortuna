@@ -118,7 +118,7 @@ UI.hotspots = () => {
     const cx = (s.x + s.w / 2) / SW * 100, below = s.y < 16;
     const ty = (below ? s.y + 2 : s.y) / SH * 100;   // near the top edge: hang just inside the spot
     const edge = cx < 9 ? ' left' : cx > 91 ? ' right' : '';
-    tags += `<span class="tag ${kind}${below ? ' below' : ''}${edge}" data-i="${i}" style="left:${cx}%;top:${ty}%">${esc(tag)}</span>`;
+    if (!s.noTag) tags += `<span class="tag ${kind}${below ? ' below' : ''}${edge}" data-i="${i}" style="left:${cx}%;top:${ty}%">${esc(tag)}</span>`;
   });
   lay.innerHTML = html;
   $('#labels').innerHTML = tags;
