@@ -974,6 +974,40 @@ Scenes.inn.alt = {
   ],
 };
 
+// The Academy, fitted to art/academy.png
+Scenes.academy.alt = {
+  key: () => '',
+  base(ctx) { ctx.drawImage(Scenes.art.academy, 0, 0, SW, SH); },
+  anim(ctx) {
+    // the orb breathes, and motes of light circle it
+    const b = Math.sin(Scenes.frame / 30);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    Art.disc(ctx, 128, 82, 7, `rgba(180,140,255,${0.12 + b * 0.08})`);
+    ctx.restore();
+    for (let i = 0; i < 8; i++) { const a = Scenes.frame / 40 + i * 0.79; px(ctx, 128 + Math.cos(a) * (13 + (i % 3) * 3), 82 + Math.sin(a) * 6, 1, 1, '#e0d4ff'); }
+    motes(ctx, 180, 30, 50, 90, 8);
+    const f = Math.floor(Scenes.frame / 5);
+    for (const [cx, cy] of [[94, 119], [113, 136], [199, 108], [245, 116]]) { const k = (f + cx) % 3; px(ctx, cx, cy - (k === 1 ? 1 : 0), 1, 3, '#ffd866'); px(ctx, cx, cy + 1, 1, 1, '#fff6c0'); }
+    if (S.staff.dean) Scenes.person(ctx, 160, 152, { id: 95, cls: 'mage', look: { skin: '#f1c9a5', hair: '#e8e0c8', style: 0, beard: true } }, { cloth: '#4a3a7a' });
+    const w = Scenes.whereabouts().academy;
+    const seats = [[205, 148, true], [262, 163, true], [96, 172, true], [72, 160, false], [186, 166, false]];
+    Scenes.acSpots = w.slice(0, seats.length).map((a, i) => ({ a, x: seats[i][0], y: seats[i][1], sit: seats[i][2] }));
+    for (const s of Scenes.acSpots) Scenes.person(ctx, s.x, s.y, s.a, { sit: s.sit });
+  },
+  light(ctx, d) {
+    const b = Math.sin(Scenes.frame / 30);
+    Art.glow(ctx, 128, 82, 60 + b * 6, '170,140,255', 0.16 + d * 0.2);
+    for (const [cx, cy] of [[94, 121], [113, 138], [199, 110], [245, 118]]) Art.glow(ctx, cx, cy, 22, '255,210,130', 0.12 + d * 0.2);
+  },
+  spots: () => [
+    { x: 106, y: 70, w: 42, h: 74, label: 'Lectern: enrol members in courses', act: () => UI.trainForm('academy') },
+    { x: 68, y: 24, w: 36, h: 44, label: 'Star chart', act: () => UI.say('A chart of the heavens, older than the guild. Someone has pencilled a small question mark beside the constellation of the Flagon.') },
+    { x: 292, y: 40, w: 28, h: 115, label: 'Door: back to the hall', act: () => UI.go('hall') },
+    ...(S.staff.dean ? [{ x: 152, y: 124, w: 17, h: 30, label: `Talk to ${S.staff.dean.name}`, act: () => UI.say(`"Minds, Guildmaster. Swords break. Minds compound." ${S.staff.dean.name} adjusts their spectacles.`) }] : []),
+    ...(Scenes.acSpots || []).map(s => ({ x: s.x - 8, y: s.y - 28, w: 17, h: 30, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
+  ],
+};
+
 // every scene draws through the shared compositor, using painted art when present
 for (const name of Scenes.ROOMS) {
   const sc = Scenes[name], drawnSpots = sc.spots;
