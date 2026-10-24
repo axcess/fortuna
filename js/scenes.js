@@ -409,14 +409,14 @@ Scenes.office = {
     if (Scenes.lit()) { Art.glow(ctx, 216, 33, 80, '255,180,90', 0.2 + d * 0.3); Art.glow(ctx, 216, 33, 16, '255,220,140', 0.2); }
   },
   spots: () => [
-    { x: 12, y: 96, w: 66, h: 42, label: () => `Inbox (${S.inbox.filter(d => !d.done).length} unread or unfiled)`, act: () => UI.inbox() },
+    { x: 12, y: 106, w: 66, h: 32, label: () => `Inbox (${S.inbox.filter(d => !d.done).length} unread or unfiled)`, act: () => UI.inbox() },
     { x: 84, y: 130, w: 44, h: 28, label: 'Ledger', act: () => UI.ledger() },
     { x: 130, y: 132, w: 42, h: 28, label: 'Roster book', act: () => UI.roster() },
     { x: 175, y: 124, w: 52, h: 34, label: 'Day planner: deadlines', act: () => UI.planner() },
     { x: 234, y: 96, w: 32, h: 36, label: () => S.sips ? `Sip coffee (${S.sips} left)` : 'Coffee mug (empty)', act: () => UI.sip() },
     { x: 88, y: 28, w: 42, h: 86, label: 'Door: to the main hall', act: () => UI.go('hall') },
     { x: 188, y: 50, w: 34, h: 64, label: 'Filing cabinet: archive', act: () => UI.archive() },
-    { x: 6, y: 10, w: 72, h: 92, label: 'Bookshelf: guild handbook and council rules', act: () => UI.rules() },
+    { x: 6, y: 10, w: 72, h: 88, label: 'Bookshelf: guild handbook and council rules', act: () => UI.rules() },
     { x: 138, y: 14, w: 50, h: 42, label: 'Guild charter', act: () => UI.charter() },
     { x: 224, y: 10, w: 78, h: 66, label: 'Window', act: () => UI.window() },
   ],

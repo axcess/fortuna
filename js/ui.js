@@ -63,7 +63,7 @@ UI.init = () => {
   const cv = $('#scene'); Scenes.ctx = cv.getContext('2d'); cv.width = SW; cv.height = SH;
   $('#clockout').onclick = () => UI.clockOut();
   $('#menu').onclick = () => UI.menu();
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if ($('#talk').classList.contains('open')) UI.closeTalk(); else UI.close(); } });
+  window.addEventListener('keydown', (e) => { if ((e.key === 'l' || e.key === 'L') && !/INPUT|TEXTAREA/.test(e.target.tagName) && !$('#night').classList.contains('open')) UI.toggleLabels(); if (e.key === 'Escape') { if ($('#talk').classList.contains('open')) UI.closeTalk(); else UI.close(); } });
   UI.go('office');
 };
 UI.top = () => {
@@ -98,6 +98,8 @@ UI.go = (scene) => {
   if (scene !== Scenes.cur && Scenes.cur) Core.spend(Core.COST.walk);
   Scenes.cur = scene; UI.close(); UI.closeTalk();
   $('#bubbles').innerHTML = '';
+  $('#labels').classList.toggle('all', UI.labelsOn);
+  UI.flashLabels();
   const sc = Scenes[scene];
   $('#where').textContent = sc.title;
   UI.refresh();
@@ -107,19 +109,56 @@ UI.hotspots = () => {
   sc.draw(Scenes.ctx);   // also recomputes where people stand
   const lay = $('#spots');
   if (UI.n % 500 < 20) for (const k of Object.keys(UI.fns)) if (+k < UI.n - 1500) delete UI.fns[k];   // forget stale buttons
-  let html = '';
-  for (const s of sc.spots()) {
+  let html = '', tags = '';
+  sc.spots().forEach((s, i) => {
     const label = typeof s.label === 'function' ? s.label() : s.label;
-    html += UI.btn('', s.act, 'spot', `style="left:${s.x / SW * 100}%;top:${s.y / SH * 100}%;width:${s.w / SW * 100}%;height:${s.h / SH * 100}%" aria-label="${esc(label)}" data-label="${esc(label)}"`);
-  }
+    const [tag, kind] = UI.tagFor(label);
+    html += UI.btn('', s.act, 'spot', `style="left:${s.x / SW * 100}%;top:${s.y / SH * 100}%;width:${s.w / SW * 100}%;height:${s.h / SH * 100}%" aria-label="${esc(label)}" data-label="${esc(label)}" data-i="${i}"`);
+    // the tag floats above the spot, or just inside it when the spot touches the top edge
+    const cx = (s.x + s.w / 2) / SW * 100, below = s.y < 16;
+    const ty = (below ? s.y + 2 : s.y) / SH * 100;   // near the top edge: hang just inside the spot
+    const edge = cx < 9 ? ' left' : cx > 91 ? ' right' : '';
+    tags += `<span class="tag ${kind}${below ? ' below' : ''}${edge}" data-i="${i}" style="left:${cx}%;top:${ty}%">${esc(tag)}</span>`;
+  });
   lay.innerHTML = html;
+  $('#labels').innerHTML = tags;
   lay.querySelectorAll('.spot').forEach(b => {
-    b.onmouseenter = b.onfocus = () => { $('#caption').textContent = b.dataset.label; };
-    b.onmouseleave = b.onblur = () => { $('#caption').textContent = UI.defaultCaption(); };
+    const t = $(`#labels .tag[data-i="${b.dataset.i}"]`);
+    b.onmouseenter = b.onfocus = () => { $('#caption').textContent = b.dataset.label; t && t.classList.add('show'); };
+    b.onmouseleave = b.onblur = () => { $('#caption').textContent = UI.defaultCaption(); t && t.classList.remove('show'); };
   });
   $('#caption').textContent = UI.defaultCaption();
   const fac = sc.fac;
-  $('#facinfo').innerHTML = fac ? `${{ tavern: 'Tavern', inn: 'Inn', yard: 'Training yard', academy: 'Academy' }[fac]} · level ${S.fac[fac]} ${UI.btn('Commission works', () => UI.works(fac), 'mini')}` : '';
+  $('#facinfo').innerHTML = (fac ? `${{ tavern: 'Tavern', inn: 'Inn', yard: 'Training yard', academy: 'Academy' }[fac]} · level ${S.fac[fac]} ${UI.btn('Commission works', () => UI.works(fac), 'mini')}` : '') +
+    UI.btn(`Labels: ${UI.labelsOn ? 'on' : 'off'}`, () => UI.toggleLabels(), 'mini', `aria-pressed="${!!UI.labelsOn}" title="Show the names of everything you can click (L)"`);
+};
+// Short tag text for a hotspot, and its kind: exit, person or thing.
+UI.tagFor = (label) => {
+  let m = label.match(/^(Door|Archway|Gate|Stairs): (?:back (?:down )?)?(?:to |down to )?(?:the )?(.*)$/i);
+  if (m) return ['→ ' + m[2].replace(/^your /, '').replace(/^\w/, c => c.toUpperCase()), 'exit'];
+  m = label.match(/^Talk to (\S+)/);
+  if (m) return [m[1], 'person'];
+  m = label.match(/^(Inbox|Quest board) \((\d+)/);
+  if (m) return [`${m[1]} (${m[2]})`, 'thing'];
+  m = label.match(/^Sip coffee \((\d+)/);
+  if (m) return [`Coffee (${m[1]})`, 'thing'];
+  if (/^Rooms:/.test(label)) return ['Rooms', 'thing'];
+  if (/^The bar/.test(label)) return ['The bar', 'thing'];
+  if (/^The Academy$/.test(label)) return ['→ Academy', 'exit'];
+  return [label.split(':')[0], 'thing'];
+};
+UI.labelPref = () => { try { const v = localStorage.getItem('desk_labels'); if (v != null) return v === '1'; } catch (e) { /* storage unavailable */ } return matchMedia('(hover: none)').matches; };
+UI.labelsOn = UI.labelPref();
+UI.toggleLabels = () => {
+  UI.labelsOn = !UI.labelsOn;
+  try { localStorage.setItem('desk_labels', UI.labelsOn ? '1' : '0'); } catch (e) { /* not remembered, fine */ }
+  $('#labels').classList.toggle('all', UI.labelsOn);
+  UI.hotspots();
+};
+// Entering a room shows every label briefly, so you can see what's clickable.
+UI.flashLabels = () => {
+  const l = $('#labels'); l.classList.remove('flash'); void l.offsetWidth; l.classList.add('flash');
+  clearTimeout(UI.flashT); UI.flashT = setTimeout(() => l.classList.remove('flash'), 2600);
 };
 UI.defaultCaption = () => Scenes.cur === 'office' ? 'Click things on your desk. The inbox is on the left.' : 'Click a door to move on, or a person to talk (10 min).';
 Scenes.loop = () => {

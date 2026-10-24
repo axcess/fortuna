@@ -250,6 +250,25 @@ h4 { font-family: var(--font-type); font-size: 13px; letter-spacing: .1em; text-
   75% { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, -260%); }
 }
+/* hotspot name tags */
+#labels { position: absolute; inset: 0; pointer-events: none; }
+.tag { position: absolute; transform: translate(-50%, calc(-100% - 7px)); white-space: nowrap; opacity: 0; transition: opacity .18s;
+  font: 700 clamp(11px, 1.15vw, 14px)/1.2 var(--font-ui); letter-spacing: .02em; padding: 2px 8px 3px; border-radius: 3px;
+  color: #fff3da; background: rgba(23, 18, 14, .9); border: 1px solid var(--brass); box-shadow: 0 2px 6px rgba(0, 0, 0, .45); }
+.tag::after { content: ''; position: absolute; left: 50%; top: 100%; margin-left: -5px; border: 5px solid transparent; border-top-color: var(--brass); }
+.tag.below { transform: translate(-50%, 7px); }
+.tag.below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--brass); }
+.tag.left { transform: translate(-12px, calc(-100% - 7px)); } .tag.left::after { left: 12px; }
+.tag.right { transform: translate(calc(-100% + 12px), calc(-100% - 7px)); } .tag.right::after { left: auto; right: 7px; }
+.tag.exit { color: #cfe2ff; border-color: #6d8cc4; } .tag.exit::after { border-top-color: #6d8cc4; } .tag.exit.below::after { border-top-color: transparent; border-bottom-color: #6d8cc4; }
+.tag.person { color: var(--paper-ink); background: rgba(246, 238, 217, .95); border-color: #2a2118; font-family: var(--font-hand); font-weight: 500; font-size: clamp(13px, 1.4vw, 17px); padding: 0 8px 1px; }
+.tag.person::after { border-top-color: #2a2118; }
+#labels.all .tag, .tag.show { opacity: 1; }
+#labels.all .tag:not(.show) { opacity: .88; }
+.tag.show { z-index: 2; box-shadow: 0 0 0 2px rgba(255, 228, 150, .35), 0 2px 6px rgba(0, 0, 0, .45); }
+#labels.flash:not(.all) .tag:not(.show) { animation: tagflash 2.6s ease-in forwards; }
+@keyframes tagflash { 0% { opacity: 0; } 10%, 70% { opacity: .95; } 100% { opacity: 0; } }
+
 #bubbles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .bubble { position: absolute; transform: translate(-50%, -100%); padding: 1px 9px 2px; white-space: nowrap;
   font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 19px); line-height: 1.15; color: var(--paper-ink);
@@ -260,6 +279,7 @@ h4 { font-family: var(--font-type); font-size: 13px; letter-spacing: .1em; text-
 
 @keyframes fadeonly { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
+  .tag { transition: none; } #labels.flash:not(.all) .tag:not(.show) { animation: none; opacity: 0; }
   .float { animation: fadeonly 1.5s forwards; } .bubble { animation: fadeonly 3.3s forwards; } .toast { animation: none; } .track i { transition: none; } }
 
 /* ------------------------------------------------------------- narrow */
