@@ -3,57 +3,41 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Guildhall: Rise of the Rusty Flagon</title>
+<title>The Guildmaster's Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jacquard+12&family=Pixelify+Sans:wght@400;600&family=VT323&display=swap">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=IM+Fell+English:ital@0;1&family=Special+Elite&family=UnifrakturMaguntia&family=Old+Standard+TT:wght@400;700&family=Alegreya+Sans:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/desk.css">
 </head>
 <body>
 <!--GAME-->
 <div id="app">
-  <header id="topbar">
-    <div class="brand"><span id="gName">The Rusty Flagon</span><span class="sub">Adventurers' Guild</span></div>
-    <div class="stat-row">
-      <div class="chip" title="Date and time"><span id="weather">☀️</span> <span id="date"></span> <b id="clock"></b></div>
-      <div class="chip gold-chip" title="Treasury"><span>💰</span><b id="gold">0</b></div>
-      <div class="chip" title="Guild rank and renown"><span class="rankchip" id="rank">F</span><span class="rk"><span id="renown">0</span><span class="rankbar"><i id="rankbar"></i></span></span></div>
-      <div class="chip" title="Average mood of everyone in the hall"><b id="morale">🙂</b></div>
-      <div class="chip" title="Adventurers / roster cap">⚔️ <b id="headcount">0</b></div>
-      <div class="chip debt" title="Owed to the Copperhand Consortium">📜 <b id="debt">0</b></div>
+  <header id="top">
+    <div class="who"><span id="gname"></span><span id="date"></span></div>
+    <div class="meters">
+      <div class="m clockm" title="Your working day runs 08:00 to 18:00. You can stay until 22:00, but you'll be tired tomorrow."><span id="clock">08:00</span><span class="track"><i id="dayprog"></i></span></div>
+      <div class="m" title="Focus. Low focus blurs your reading and slows you down."><span class="lbl">Focus</span><span class="track"><i id="focusbar"></i></span><span id="sips" title="Coffee left in the mug"></span></div>
+      <div class="m" title="Gold in the strongbox"><span class="lbl">Gold</span><b id="gold">0</b></div>
+      <div class="m" title="Guild rank and renown"><span class="lbl">Rank</span><b id="rank">F</b><small id="renown"></small></div>
+      <div class="m" title="Unfiled paperwork"><span class="lbl">Inbox</span><b id="unread">0</b></div>
     </div>
-    <div class="controls">
-      <div id="speed" role="group" aria-label="Game speed">
-        <button data-s="0" title="Pause (Space)">❚❚</button><button data-s="1" class="on" title="Normal (1)">▶</button><button data-s="2" title="Fast (2)">▶▶</button><button data-s="3" title="Fastest (3)">▶▶▶</button>
-      </div>
-      <button id="menuBtn" title="Menu">☰</button>
-    </div>
+    <div class="ctl"><button id="clockout" class="stamp">Clock out</button><button id="menu" class="ghost" aria-label="Menu">☰</button></div>
   </header>
-  <main id="main">
-    <section id="viewport">
-      <canvas id="cv"></canvas>
-      <div id="overlays" role="group" aria-label="Map overlays">
-        <button data-o="none" class="on">Hall</button><button data-o="appeal">Appeal</button><button data-o="cond">Floors</button><button data-o="traffic">Traffic</button>
-      </div>
-      <div id="legend"></div>
-      <div id="tip"></div>
-      <div id="pausedTag">PAUSED</div>
-      <aside id="inspector"></aside>
-    </section>
-    <aside id="side">
-      <nav id="tabs">
-        <button data-tab="roster" class="on">Roster</button><button data-tab="quests">Quests</button><button data-tab="build">Build</button><button data-tab="guild">Guild</button><button data-tab="ledger">Ledger</button>
-      </nav>
-      <div id="hint"></div>
-      <div id="panel"></div>
-    </aside>
+  <main id="stage">
+    <div id="frame">
+      <canvas id="scene"></canvas>
+      <div id="spots"></div>
+      <div id="talk" role="dialog" aria-live="polite"></div>
+    </div>
+    <div id="statusline"><span id="where"></span><span id="caption"></span><span id="facinfo"></span></div>
   </main>
-  <footer id="ticker"></footer>
 </div>
-<div id="modal"></div>
+<div id="veil"></div>
+<section id="sheet" class="sheet" role="dialog" aria-modal="true"></section>
+<div id="night"></div>
 <div id="toasts"></div>
-<script src="js/data.js"></script>
-<script src="js/sim.js"></script>
-<script src="js/render.js"></script>
+<script src="js/content.js"></script>
+<script src="js/core.js"></script>
+<script src="js/scenes.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 <!--/GAME-->
