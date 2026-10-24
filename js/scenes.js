@@ -139,8 +139,12 @@ Scenes.LOOKS = {};
 if (typeof SPRITES !== 'undefined') {
   for (const id in SPRITES) { const m = id.match(/^([a-z]+)_/); if (m) (Scenes.LOOKS[m[1]] = Scenes.LOOKS[m[1]] || []).push(id); }
 }
+// Staff are drawn as nameless figures with fixed ids (see the room layouts).
+Scenes.STAFF_IDS = { 99: 'clerk', 98: 'barkeep', 97: 'trainer', 96: 'innkeeper', 95: 'dean' };
+Scenes.staffFigure = (role) => ({ id: +Object.keys(Scenes.STAFF_IDS).find(k => Scenes.STAFF_IDS[k] === role) });
 Scenes.spriteFor = (a) => {
-  if (!a || !a.name) return null;
+  if (!a) return null;
+  if (!a.name) { const id = Scenes.STAFF_IDS[a.id] && 'staff_' + Scenes.STAFF_IDS[a.id]; return id && Scenes.sprites[id + '_stand'] ? id : null; }
   let id = Scenes.SPRITE_OF[a.name];
   const pool = Scenes.LOOKS[a.cls];
   if (!id && pool) id = pool[(Math.imul(a.id, 2654435761) >>> 0) % pool.length];
@@ -665,7 +669,7 @@ Scenes.yard = {
   spots: () => [
     { x: 14, y: 96, w: 34, h: 44, label: 'Training roster: schedule sessions', act: () => UI.trainForm('yard') },
     { x: 296, y: 82, w: 24, h: 54, label: 'Gate: back to the hall', act: () => UI.go('hall') },
-    ...(S.staff.trainer ? [{ x: 184, y: 100, w: 17, h: 30, label: `Talk to ${S.staff.trainer.name}`, act: () => UI.say(`"Give me a week with any of them and I'll make them worth twice the coin." ${S.staff.trainer.name} cracks their knuckles.`) }] : []),
+    ...(S.staff.trainer ? [{ x: 184, y: 100, w: 17, h: 30, label: `Talk to ${S.staff.trainer.name}`, act: () => UI.say(`"Give me a week with any of them and I'll make them worth twice the coin." ${S.staff.trainer.name} cracks their knuckles.`, S.staff.trainer.name, Scenes.staffFigure('trainer')) }] : []),
     ...(Scenes.yardSpots || []).map(s => ({ x: s.x - 8, y: s.y - 28, w: 17, h: 30, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
   ],
 };
@@ -992,7 +996,7 @@ Scenes.yard.alt = {
   spots: () => [
     { x: 8, y: 64, w: 42, h: 72, label: 'Training roster: schedule sessions', act: () => UI.trainForm('yard') },
     { x: 288, y: 33, w: 32, h: 90, label: 'Gate: back to the hall', act: () => UI.go('hall') },
-    ...(S.staff.trainer ? [{ x: 198, y: 96, w: 17, h: 30, label: `Talk to ${S.staff.trainer.name}`, act: () => UI.say(`"Give me a week with any of them and I'll make them worth twice the coin." ${S.staff.trainer.name} cracks their knuckles.`) }] : []),
+    ...(S.staff.trainer ? [{ x: 198, y: 96, w: 17, h: 30, label: `Talk to ${S.staff.trainer.name}`, act: () => UI.say(`"Give me a week with any of them and I'll make them worth twice the coin." ${S.staff.trainer.name} cracks their knuckles.`, S.staff.trainer.name, Scenes.staffFigure('trainer')) }] : []),
     ...(Scenes.yardSpots || []).map(s => ({ x: s.x - 8, y: s.y - 28, w: 17, h: 30, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
   ],
 };
@@ -1060,7 +1064,7 @@ Scenes.academy.alt = {
     { x: 106, y: 70, w: 42, h: 74, label: 'Lectern: enrol members in courses', act: () => UI.trainForm('academy') },
     { x: 68, y: 24, w: 36, h: 44, label: 'Star chart', act: () => UI.say('A chart of the heavens, older than the guild. Someone has pencilled a small question mark beside the constellation of the Flagon.') },
     { x: 292, y: 40, w: 28, h: 115, label: 'Door: back to the hall', act: () => UI.go('hall') },
-    ...(S.staff.dean ? [{ x: 152, y: 124, w: 17, h: 30, label: `Talk to ${S.staff.dean.name}`, act: () => UI.say(`"Minds, Guildmaster. Swords break. Minds compound." ${S.staff.dean.name} adjusts their spectacles.`) }] : []),
+    ...(S.staff.dean ? [{ x: 152, y: 124, w: 17, h: 30, label: `Talk to ${S.staff.dean.name}`, act: () => UI.say(`"Minds, Guildmaster. Swords break. Minds compound." ${S.staff.dean.name} adjusts their spectacles.`, S.staff.dean.name, Scenes.staffFigure('dean')) }] : []),
     ...(Scenes.acSpots || []).map(s => ({ x: s.x - 8, y: s.y - 28, w: 17, h: 30, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
   ],
 };

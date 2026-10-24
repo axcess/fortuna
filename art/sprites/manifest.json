@@ -385,6 +385,46 @@
    "w": 29
   }
  },
+ "staff_barkeep": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 47,
+   "w": 22
+  }
+ },
+ "staff_clerk": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 55,
+   "w": 22
+  }
+ },
+ "staff_dean": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 57,
+   "w": 21
+  }
+ },
+ "staff_innkeeper": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 48,
+   "w": 25
+  }
+ },
+ "staff_trainer": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 58,
+   "w": 26
+  }
+ },
  "summoner_dwarf": {
   "portrait": true,
   "stand": {

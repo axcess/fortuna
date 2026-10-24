@@ -442,7 +442,7 @@ UI.bar = () => {
   const name = S.staff.barkeep ? S.staff.barkeep.name : null;
   UI.root(() => UI.show(`<p>${name ? `${esc(name)} polishes a tankard that was already clean.` : 'The bar is self-service. There is an honesty jar. It is mostly buttons.'}</p>
     <div class="acts">${UI.btn(`Refill your coffee <small>5 min</small>`, () => { S.sips = 3; Core.spend(Core.COST.refill); UI.after('A fresh mug. Your hands thank you.'); }, 'stamp')}
-    ${name ? UI.btn(`Ask ${esc(name)} for gossip <small>10 min</small>`, () => { Core.spend(Core.COST.talk, 1); UI.close(); UI.say(Core.rumor(true), name); }, 'stamp') : ''}</div>`, { title: 'The bar' }));
+    ${name ? UI.btn(`Ask ${esc(name)} for gossip <small>10 min</small>`, () => { Core.spend(Core.COST.talk, 1); UI.close(); UI.say(Core.rumor(true), name, Scenes.staffFigure('barkeep')); }, 'stamp') : ''}</div>`, { title: 'The bar' }));
 };
 UI.prices = () => UI.root(() => UI.show(`<p>The chalkboard says ale is <b>${{ cheap: '1g', fair: '2g', steep: '3g' }[S.alePrice]}</b> a mug.</p>
   <p class="hint">Cheap ale keeps members happy but earns less. Steep ale earns more and grumbling.</p>

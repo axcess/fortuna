@@ -19,7 +19,7 @@ A painted room also needs an `alt` layout in `js/scenes.js` with its clickable z
 
     python3 tools/cut_sprites.py art/source/cast_starters_standing.jpg brom pip tamsin kael
 
-Names go left to right. It keys out the magenta, removes the magenta fringe, separates the figures (they mustn't touch; a weapon reaching over a neighbour is fine), shrinks every sheet by the same factor (a human ends up 56 px tall), and writes `<name>_stand.png`, a 96×96 `<name>_portrait.png`, `manifest.json` and `js/sprites.js`. `Scenes.SPRITE_OF` in `js/scenes.js` maps a named character's full name to their sprite.
+Names go left to right. It keys out the magenta, removes the magenta fringe, separates the figures (best when they don't touch; a weapon reaching over a neighbour is fine), shrinks every sheet by the same factor (a human ends up 56 px tall), and writes `<name>_stand.png`, a 96×96 `<name>_portrait.png`, `manifest.json` and `js/sprites.js`. `Scenes.SPRITE_OF` in `js/scenes.js` maps a named character's full name to their sprite.
 
 Recruit looks are named `<class>_<variant>` (for example `warrior_orc`, `mage_gnome`). Every member without a named sprite gets one of their class's looks, chosen from their id so it never changes. The class sheets so far:
 
@@ -38,6 +38,7 @@ Recruit looks are named `<class>_<variant>` (for example `warrior_orc`, `mage_gn
     python3 tools/cut_sprites.py art/source/class_artificer.jpg artificer_gnome artificer_dwarf artificer_human artificer_elf
     python3 tools/cut_sprites.py art/source/class_druid.jpg druid_dwarf druid_orc druid_human druid_elf
     python3 tools/cut_sprites.py art/source/class_ranger.jpg ranger_human ranger_orc ranger_halfling ranger_elf
+    python3 tools/cut_sprites.py art/source/staff.jpg staff_clerk staff_barkeep staff_trainer staff_innkeeper staff_dean
     python3 tools/cut_sprites.py art/source/familiars.jpg fam_golem fam_whelp fam_wisp fam_fox fam_raven fam_lantern --noportrait
 
-Familiars (`fam_*`) are drawn beside summoners; `Scenes.FLOATS` lists the ones that hover. Staff have no sheets yet and are still drawn procedurally.
+Familiars (`fam_*`) are drawn beside summoners; `Scenes.FLOATS` lists the ones that hover. Staff sprites (`staff_*`) are matched to the fixed ids staff are drawn with (`Scenes.STAFF_IDS`). If figures on a sheet touch, the cutter falls back to cutting between them along the darkest path, but anything hidden behind a neighbour stays missing, so leave gaps when you can.

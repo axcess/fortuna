@@ -68,7 +68,7 @@ def components(mask):
     return lab, n
 
 
-def figures(alpha, count):
+def figures(alpha, count, rgb=None):
     """One mask per figure, left to right. Figures are the big connected shapes;
     stray bits (a detached arrow, a strap) join the figure nearest to them. Works
     even when a weapon reaches over a neighbour's columns, as long as it doesn't touch."""
@@ -78,8 +78,8 @@ def figures(alpha, count):
     order = np.argsort(-area)
     big = sorted(order[:count] + 1, key=lambda i: np.nonzero(lab == i)[1].mean())
     if len(big) < count or area[order[count - 1]] < area[order[0]] * 0.15:
-        sys.exit(f'Found {int((area > area.max() * 0.15).sum())} figures but got {count} names '
-                 '(figures must not touch each other)')
+        print(f'  figures touch: found {int((area > area.max() * 0.15).sum())} shapes for {count} names, cutting along seams')
+        return seam_split(alpha, count, rgb)
     cx = [np.nonzero(lab == i)[1].mean() for i in big]
     owner = np.zeros(n + 1, np.int32)
     for k, i in enumerate(big): owner[i] = k + 1
@@ -95,6 +95,45 @@ def figures(alpha, count):
             g = m.copy(); g[1:] |= m[:-1]; g[:-1] |= m[1:]; g[:, 1:] |= m[:, :-1]; g[:, :-1] |= m[:, 1:]; m = g
         masks.append(m)
     return masks
+
+
+def seam_split(alpha, count, rgb=None):
+    """Fallback for figures that touch: cut between neighbours along the vertical
+    path that crosses the fewest figure pixels (it can wiggle round an elbow)."""
+    mask = alpha > 0.5
+    h, w = mask.shape
+    cols = np.nonzero(mask.any(0))[0]
+    x0, x1 = cols[0], cols[-1]
+    cov = np.convolve(mask.sum(0).astype(float), np.ones(9) / 9, 'same')
+    step = (x1 - x0) / count
+    seams = []
+    for i in range(1, count):
+        g = x0 + step * i
+        lo, hi = int(g - step * 0.35), int(g + step * 0.35)
+        g = lo + int(np.argmin(cov[lo:hi]))          # start from the thinnest column nearby
+        lo, hi = max(0, int(g - step * 0.3)), min(w, int(g + step * 0.3))
+        # crossing a figure is cheap along its dark outline, so the cut follows edges
+        dark = 0.15 + rgb[:, lo:hi].mean(-1) / 255 if rgb is not None else 1
+        cost = mask[:, lo:hi] * dark + np.abs(np.arange(lo, hi) - g)[None, :] * 0.002
+        acc = cost.copy(); back = np.zeros(cost.shape, int)
+        for y in range(1, h):                        # each row may shift the cut one column
+            prev = acc[y - 1]
+            opts = np.stack([np.r_[np.inf, prev[:-1]], prev, np.r_[prev[1:], np.inf]])
+            k = np.argmin(opts, 0); back[y] = k - 1
+            acc[y] += opts[k, np.arange(len(prev))]
+        path = np.zeros(h, int); path[-1] = int(np.argmin(acc[-1]))
+        for y in range(h - 1, 0, -1): path[y - 1] = path[y] + back[y, path[y]]
+        seams.append(path + lo)
+    xs = np.arange(w)[None, :]
+    bounds = [np.zeros(h, int)] + seams + [np.full(h, w)]
+    return [mask_grow((xs >= bounds[k][:, None]) & (xs < bounds[k + 1][:, None]) & (alpha > 0.02), 0)
+            for k in range(count)]
+
+
+def mask_grow(m, n):
+    for _ in range(n):
+        g = m.copy(); g[1:] |= m[:-1]; g[:-1] |= m[1:]; g[:, 1:] |= m[:, :-1]; g[:, :-1] |= m[:, 1:]; m = g
+    return m
 
 
 def shrink(fg, a, factor):
@@ -115,7 +154,7 @@ def main():
     sheet, names = args[0], args[1:]
     rgb = np.asarray(Image.open(sheet).convert('RGB')).astype(float)
     fg, a = key_out(rgb)
-    masks = figures(a, len(names))
+    masks = figures(a, len(names), rgb)
     os.makedirs(OUT, exist_ok=True)
     man_path = os.path.join(OUT, 'manifest.json')
     manifest = json.load(open(man_path)) if os.path.exists(man_path) else {}
