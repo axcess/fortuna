@@ -230,7 +230,37 @@ h4 { font-family: var(--font-type); font-size: 13px; letter-spacing: .1em; text-
 .toast { padding: 8px 16px; background: var(--wood-2); border: 1px solid var(--brass); border-radius: 3px; font-size: 15px; max-width: 90vw; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); animation: rise .25s ease-out; }
 .toast.bad { border-color: var(--ember); } .toast.good { border-color: var(--moss-bright); }
 @keyframes rise { from { transform: translateY(6px); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .toast { animation: none; } .track i { transition: none; } }
+/* ------------------------------------------------------------- floating text */
+#floats { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+.float { position: absolute; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap;
+  padding: 0 8px 1px; border-radius: 10px; background: rgba(18, 12, 8, .72);
+  font-family: var(--font-type); font-size: 18px; letter-spacing: .02em; color: #fff3da;
+  text-shadow: 1px 1px 0 #120c08, -1px 1px 0 #120c08, 1px -1px 0 #120c08, -1px -1px 0 #120c08, 0 3px 6px rgba(0, 0, 0, .55);
+  animation: floatup 1.5s cubic-bezier(.2, .7, .3, 1) forwards; }
+.float.time { color: #b8d2ff; }
+.float.gain { color: #ffe066; font-size: 21px; }
+.float.loss { color: #ff8f73; }
+.float.renown { color: #f4d470; }
+.float.focus { color: #a6ec98; }
+.float.mail { color: #fff3da; font-size: 22px; }
+@keyframes floatup {
+  0% { opacity: 0; transform: translate(-50%, -20%) scale(.7); }
+  14% { opacity: 1; transform: translate(-50%, -70%) scale(1.15); }
+  28% { transform: translate(-50%, -85%) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -260%); }
+}
+#bubbles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.bubble { position: absolute; transform: translate(-50%, -100%); padding: 1px 9px 2px; white-space: nowrap;
+  font-family: var(--font-hand); font-size: clamp(14px, 1.6vw, 19px); line-height: 1.15; color: var(--paper-ink);
+  background: #fffaf0; border: 2px solid #2a2118; border-radius: 10px; box-shadow: 0 3px 0 rgba(0, 0, 0, .25);
+  animation: bubble 3.3s ease-out forwards; }
+.bubble::after { content: ''; position: absolute; left: 50%; bottom: -7px; margin-left: -5px; border: 5px solid transparent; border-top-color: #2a2118; border-bottom: 0; }
+@keyframes bubble { 0% { opacity: 0; transform: translate(-50%, -80%) scale(.6); } 8% { opacity: 1; transform: translate(-50%, -100%) scale(1.05); } 14% { transform: translate(-50%, -100%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -115%); } }
+
+@keyframes fadeonly { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .float { animation: fadeonly 1.5s forwards; } .bubble { animation: fadeonly 3.3s forwards; } .toast { animation: none; } .track i { transition: none; } }
 
 /* ------------------------------------------------------------- narrow */
 @media (max-width: 760px) {

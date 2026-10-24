@@ -791,6 +791,26 @@ Core.rumor = (barkeep) => {
   r.given.push(clue);
   return U.pick(barkeep ? C.TALK.barkeep : C.TALK.rumor).replace('{place}', r.place).replace('{clue}', clue);
 };
+// A short remark for a speech bubble, coloured by how the member is doing.
+Core.bark = (a) => {
+  const o = [];
+  if (a.status === 'injured') o.push('Ow. My ribs.', 'Still mending…', 'Bring soup?');
+  if (a.status === 'training') o.push('Hup! Hup!', 'One more set…', 'My arms…');
+  if (a.status === 'idle') {
+    if (a.idle >= 2) o.push('Any work, boss?', 'So bored…', `${a.idle} days idle…`);
+    const cheap = S.board.find(p => p.status === 'open' && a.rank >= p.rank && p.pay < C.EXPECT[p.rank] * Core.req(p.req).days * 0.95);
+    if (cheap) o.push(`${cheap.pay}g? Pfft.`, 'Who pays that little?');
+    if (S.board.some(p => p.status === 'open' && a.rank >= p.rank)) o.push('Ooh, a new posting.', 'Board looks busy.');
+  }
+  if (a.morale < 35) o.push('Hmph.', 'Lions pay better…', 'This place…');
+  else if (a.morale > 75) o.push('Good day!', 'Love it here.', '♪ ♫');
+  if (Core.has(a, 'rowdy')) o.push('Who wants a fight?');
+  if (Core.has(a, 'greedy')) o.push('Coin, coin, coin.');
+  if (Core.has(a, 'brave')) o.push('Bring on the dragons.');
+  if (Core.has(a, 'cautious')) o.push('Is it safe, though?');
+  if (!o.length) o.push('…', 'Hm?', 'Morning.');
+  return U.pick(o);
+};
 Core.chat = (a) => {
   Core.spend(Core.COST.talk, 1.5);
   const lines = [U.pick(C.TALK.greet)];

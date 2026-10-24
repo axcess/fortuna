@@ -12,8 +12,51 @@ const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 UI.btn = (label, fn, cls = '', attrs = '') => { const id = ++UI.n; UI.fns[id] = fn; return `<button class="${cls}" data-fn="${id}" ${attrs}>${label}</button>`; };
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-fn]'); if (!b || b.disabled) return;
-  const fn = UI.fns[b.dataset.fn]; if (fn) fn(e, b);
+  const fn = UI.fns[b.dataset.fn]; if (!fn) return;
+  let x = e.clientX, y = e.clientY;
+  if (!x && !y) { const r = b.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top + r.height / 2; }   // keyboard activation
+  const before = UI.snap();
+  fn(e, b);
+  UI.diffFloats(before, UI.snap(), x, y - 12);
 });
+
+// ---------------------------------------------------------- floating text --
+// Every action pops up what it cost or earned, right where you clicked.
+UI.snap = () => S ? { day: S.day, min: S.min, gold: S.gold, renown: S.renown, focus: Math.round(S.focus) } : null;
+UI.diffFloats = (a, b, x, y) => {
+  if (!a || !b || a.day !== b.day) return;
+  const out = [];
+  if (b.min > a.min) out.push([`−${b.min - a.min} min`, 'time']);
+  if (b.gold !== a.gold) out.push([`${b.gold > a.gold ? '+' : '−'}${Math.abs(b.gold - a.gold)}g`, b.gold > a.gold ? 'gain' : 'loss']);
+  if (b.renown !== a.renown) out.push([`★ ${b.renown > a.renown ? '+' : '−'}${Math.abs(b.renown - a.renown)}`, b.renown > a.renown ? 'renown' : 'loss']);
+  if (b.focus - a.focus >= 5) out.push([`Focus +${b.focus - a.focus}`, 'focus']);
+  out.forEach(([t, k], i) => UI.float(t, x, y - i * 20, k, i * 110));
+};
+UI.float = (text, x, y, kind = '', delay = 0) => {
+  const el = document.createElement('div');
+  el.className = 'float ' + kind; el.textContent = text;
+  el.style.left = Math.round(x) + 'px'; el.style.top = Math.round(y) + 'px'; el.style.animationDelay = delay + 'ms';
+  $('#floats').appendChild(el);
+  setTimeout(() => el.remove(), 1700 + delay);
+};
+UI.sceneToClient = (sx, sy) => { const r = $('#frame').getBoundingClientRect(); return [r.left + sx / SW * r.width, r.top + sy / SH * r.height]; };
+
+// People in a room occasionally say something about how they're doing.
+UI.SPOTS = { hall: 'hallSpots', tavern: 'tavSpots', yard: 'yardSpots', inn: 'innSpots', academy: 'acSpots' };
+UI.ambient = () => {
+  if (!S || $('#veil').classList.contains('open') || $('#night').classList.contains('open') || $('#talk').classList.contains('open')) return;
+  const spots = Scenes[UI.SPOTS[Scenes.cur]];
+  const layer = $('#bubbles');
+  if (!spots || !spots.length || layer.children.length >= 2 || Math.random() < 0.3) return;
+  const s = U.pick(spots);
+  if ([...layer.children].some(c => c.dataset.who == s.a.id)) return;
+  const el = document.createElement('div');
+  el.className = 'bubble'; el.dataset.who = s.a.id; el.textContent = Core.bark(s.a);
+  el.style.left = (s.x / SW * 100) + '%'; el.style.top = ((s.y - (s.sit ? 25 : 29)) / SH * 100) + '%';
+  layer.appendChild(el);
+  setTimeout(() => el.remove(), 3300);
+};
+setInterval(UI.ambient, 1800);
 
 // ------------------------------------------------------------------ frame --
 UI.init = () => {
@@ -54,6 +97,7 @@ UI.toast = (msg, kind = '') => {
 UI.go = (scene) => {
   if (scene !== Scenes.cur && Scenes.cur) Core.spend(Core.COST.walk);
   Scenes.cur = scene; UI.close(); UI.closeTalk();
+  $('#bubbles').innerHTML = '';
   const sc = Scenes[scene];
   $('#where').textContent = sc.title;
   UI.refresh();
@@ -414,9 +458,21 @@ UI.clockOut = (forced) => {
   const h = `<h2>Night falls</h2><p>You put on your coat at <b>${left}</b>${unread ? `, leaving ${plural(unread, 'item')} in the inbox` : ' with an empty inbox'}.${late ? ' You will be tired tomorrow.' : ''}</p>
     <ul class="night">${night.map(l => `<li>${esc(l)}</li>`).join('')}</ul>
     ${S.over ? '<p class="bad"><b>The Council has suspended your charter.</b> The guild owes more than it can pay. The doors are chained in the morning.</p>' : `<p class="hint">Morning brings ${plural(S.inbox.filter(d => !d.done && d.day === S.day).length, 'new item')}.</p>`}
-    <div class="acts">${S.over ? UI.btn('Start again', () => { Main.newGame(); }, 'stamp red') : UI.btn(`Begin ${Core.dateStr()}`, () => { $('#night').classList.remove('open'); UI.nightShown = false; Main.save(); UI.go('office'); }, 'stamp green')}</div>`;
+    <div class="acts">${S.over ? UI.btn('Start again', () => { Main.newGame(); }, 'stamp red') : UI.btn(`Begin ${Core.dateStr()}`, () => { $('#night').classList.remove('open'); UI.nightShown = false; Main.save(); Scenes.cur = 'office'; UI.go('office'); UI.morningFloats(); }, 'stamp green')}</div>`;
   $('#night').innerHTML = `<div class="nightbox">${h}</div>`;
   $('#night').classList.add('open');
+};
+UI.morningFloats = () => {
+  const fresh = S.inbox.filter(d => !d.done && d.day === S.day).length;
+  const last = S.ledger.days[S.ledger.days.length - 1];
+  const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
+  setTimeout(() => {
+    if (fresh) { const [x, y] = UI.sceneToClient(44, 100); UI.float(`+${fresh} letters`, x, y, 'mail'); }
+    if (last) {
+      const net = sum(last.inc) - sum(last.exp), r = $('#gold').getBoundingClientRect();
+      if (net) UI.float(`${net > 0 ? '+' : '−'}${Math.abs(net)}g yesterday`, r.left + r.width / 2, r.bottom + 14, net > 0 ? 'gain' : 'loss', 250);
+    }
+  }, 250);
 };
 UI.menu = () => UI.root(() => UI.show(`<p>${esc(S.name)} · ${Core.dateStr()}</p><p class="hint">The game saves every morning in this browser.</p>
   <div class="acts">${UI.btn('Save now', () => { Main.save(); UI.toast('Saved.'); }, 'stamp')}${UI.btn('Read the handbook', () => UI.rules(), 'stamp')}${UI.btn('Start a new game', () => Main.newGame(), 'stamp red')}</div>`, { title: 'Menu' }));
