@@ -411,7 +411,7 @@ UI.rules = () => UI.root(() => {
     <p><b>Read before you post.</b> Clients rarely say what they mean. Nobles understate. Farmers exaggerate. The gazette and the tavern know things the letter doesn't.</p>
     <p><b>Rank.</b> Members only take postings at or below their rank. Post too low and the wrong people take it. Post too high and nobody can.</p>
     <p><b>Pay.</b> Members want roughly ${C.RANKS.map((r, i) => `${r}: ${C.EXPECT[i]}g`).join(', ')} per head per day. Pay less and the posting sits. The guild keeps whatever the client's fee leaves over.</p>
-    <p><b>Hazards.</b> Members prepare for the hazards you list. An unlisted hazard is a nasty surprise. Some classes are better against some hazards (clerics against undead and disease, rangers against beasts and the dark, mages against sorcery and fire, rogues for discreet work, warriors for big things and crowds, paladins against undead and for guarding people on the road).</p>
+    <p><b>Hazards.</b> Members prepare for the hazards you list. An unlisted hazard is a nasty surprise. Some classes are better against some hazards (clerics against undead and disease, rangers against beasts and the dark, mages against sorcery and fire, rogues for discreet work, warriors for big things and crowds, paladins against undead and for guarding people on the road, summoners against sorcery and crowds, bards for escorts and quiet work, alchemists against poison and fire, monks against crowds and for quiet work, hedge-witches against sorcery and the dark).</p>
     <p><b>Deadlines.</b> The inspector counts how much paperwork you handle on time.</p>
     <p class="hint">"Drink the coffee while it's hot. Nothing else in this office will wait for you." – H.G.</p>`, { title: 'Bookshelf' });
 });

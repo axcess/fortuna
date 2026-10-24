@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cut a magenta-background character sheet into game sprites.
 
-    python3 tools/cut_sprites.py SHEET.jpg brom pip tamsin kael [--pose stand|sit]
+    python3 tools/cut_sprites.py SHEET.jpg brom pip tamsin kael [--pose stand|sit] [--noportrait]
 
 Figures stand left to right and must not touch each other (a weapon may reach
 over a neighbour, but not into them), one name per figure in that order. Writes, for each figure:
@@ -133,7 +133,7 @@ def main():
         foot_x = int(round((feet[0] + feet[-1]) / 2)) if len(feet) else w // 2
         entry = manifest.setdefault(name, {})
         entry[pose] = {'w': w, 'h': h, 'fx': foot_x}
-        if pose == 'stand':
+        if pose == 'stand' and '--noportrait' not in sys.argv:
             # portrait: a square around the head. Centre on the body (feet) and find the
             # top of the head in a narrow middle band, so a sword hilt or staff poking
             # up over a shoulder doesn't count as the head.

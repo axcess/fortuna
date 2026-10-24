@@ -94,8 +94,10 @@ Core.makeAdv = (rank, cls) => {
   const first = U.pick(C.FIRST), last = U.pick(C.LAST);
   const t = [U.chance(0.7) ? 'honest' : 'padder', U.chance(0.5) ? 'brave' : 'cautious', U.chance(0.65) ? 'tidy' : 'rowdy', U.chance(0.5) ? 'greedy' : 'modest'];
   if (U.chance(0.25)) t.push('liar');
+  cls = cls || U.pick(Object.keys(C.CLASSES));
+  if (cls === 'monk') { t[0] = 'honest'; t[3] = 'modest'; if (t[4]) t.pop(); }   // their vows
   return {
-    id: Core.id(), first, last, name: `${first} ${last}`, cls: cls || U.pick(Object.keys(C.CLASSES)), rank, xp: U.ri(0, Math.floor(C.XP_NEXT[rank] * 0.5)),
+    id: Core.id(), first, last, name: `${first} ${last}`, cls, rank, xp: U.ri(0, Math.floor(C.XP_NEXT[rank] * 0.5)),
     morale: U.ri(55, 75), traits: t, known: [], status: 'idle', until: 0, injury: 0, quests: 0, wins: 0, idle: 0, joined: S ? S.day : 0,
     look: { skin: U.pick(C.SKIN), hair: U.pick(C.HAIR), style: U.ri(0, 3) }, history: [], petitioned: false,
   };
@@ -165,9 +167,14 @@ Core.requestLetter = (r) => {
   if (U.chance(0.6) && !understate) details.push(Core.rankHint(r.truth.r));
   if (r.ctype === 'farmer' && U.chance(0.25)) details.push(U.pick(['For all I know it is a dragon.', 'My wife says it is the end of the world, but she says that about the weather.']));
   if (details.length) body.push(details.join(' '));
+  const witch = S.roster.find(a => a.cls === 'witch' && a.status === 'idle');
+  const unsaid = r.truth.h.filter(h => !r.given.some(g => C.CLUES[h].includes(g)));
+  let margin = null;
+  if (witch && unsaid.length && U.chance(0.6)) { const c = Core.clueFor(U.pick(unsaid), r.given); r.given.push(c); margin = `[Pencilled in the margin by ${witch.first}, who read the tea leaves over it: "${c}"]`; }
   body.push(r.ctype === 'noble' ? `I am prepared to offer ${r.budget} crowns for a satisfactory resolution.` : `I can pay ${r.budget} gold when it is done.`);
   body.push(U.pick(ct.close));
   body.push(r.client);
+  if (margin) body.push(margin);
   return Core.addDoc({
     kind: 'request', from: r.client, subject: r.subject, seal: ct.seal, req: r.id, body, deadline: r.expires,
     summary: `${r.subject}, at ${r.place}. Offers ${r.budget}g.`,
@@ -282,6 +289,7 @@ Core.payInvoice = (d) => {
   const inv = S.invoices.find(i => i.id === d.inv);
   if (S.gold < inv.amount) return 'Not enough gold in the strongbox.';
   Core.money(-inv.amount, inv.cat); inv.paid = true;
+  if (inv.licence) { S.flags.licences = S.flags.licences || {}; S.flags.licences[inv.licence] = S.day + 28; }
   Core.spend(Core.COST.reply);
   Core.fileDoc(d);
   return null;
@@ -423,7 +431,7 @@ Core.endDay = () => {
     for (const a of S.roster) {
       if (a.status !== 'idle' || claimedTonight.has(a.id) || a.rank < p.rank) continue;
       // members price a job by its posted rank, plus a premium when they're overqualified
-      let interest = p.pay / (C.EXPECT[p.rank] * (1 + 0.2 * (a.rank - p.rank)) * r.days);
+      let interest = a.cls === 'monk' ? 1.1 : p.pay / (C.EXPECT[p.rank] * (1 + 0.2 * (a.rank - p.rank)) * r.days);   // monks work for the tithe, not the pay
       if (Core.has(a, 'greedy')) interest *= 0.85; if (Core.has(a, 'modest')) interest *= 1.2;
       if (Core.has(a, 'brave')) interest *= 1.05;
       if (Core.has(a, 'cautious') && (p.tags.length >= 3 || a.rank === p.rank && p.rank < r.truth.r)) interest *= 0.85;
@@ -457,13 +465,14 @@ Core.endDay = () => {
   for (const a of [...S.roster]) {
     if (a.status === 'training' && a.until <= day) {
       const acad = a.trainKind === 'academy';
-      const gain = acad ? (['mage', 'cleric'].includes(a.cls) ? 70 : 30) * (S.staff.dean ? 1.5 : 1) : 30 * S.fac.yard * (S.staff.trainer ? 2 : 1);
+      const gain = acad ? (['mage', 'cleric', 'summoner', 'witch', 'monk'].includes(a.cls) ? 70 : 30) * (S.staff.dean ? 1.5 : 1) : 30 * S.fac.yard * (S.staff.trainer ? 2 : 1);
       a.xp += Math.round(gain); a.status = 'idle';
       if (acad) a.morale = U.clamp(a.morale + 10, 0, 100);
       night.push(`${a.first} finished training (+${Math.round(gain)} xp).`);
     } else if (a.status === 'training') { a.xp += 0; }
-    if (a.status === 'injured') { a.injury -= S.fac.infirmary ? 2 : 1; if (a.injury <= 0) { a.status = 'idle'; night.push(`${a.first} is fit for duty again.`); } }
+    if (a.status === 'injured') { a.injury -= (S.fac.infirmary ? 2 : 1) + (S.fac.infirmary && S.roster.some(b => b.cls === 'alchemist' && b.status === 'idle') ? 1 : 0); if (a.injury <= 0) { a.status = 'idle'; night.push(`${a.first} is fit for duty again.`); } }
     if (a.status === 'idle') { a.idle++; if (a.idle >= 3) a.morale = U.clamp(a.morale - 3, 0, 100); }
+    if (a.status === 'idle' && a.cls === 'bard' && S.fac.tavern) { S.renown += 1; Core.money(2, 'tavern'); }   // busking in the taproom
     // drift
     let dm = (60 - a.morale) * 0.05;
     if (S.alePrice === 'cheap') dm += 1.5; if (S.alePrice === 'steep') dm -= 1.5;
@@ -557,7 +566,7 @@ Core.resolve = (p, night) => {
     if (U.chance(die)) dead.push(a);
     else if (U.chance(inj)) { a.status = 'injured'; a.injury = U.ri(2, 5); hurt.push(a); }
   }
-  const lead = party[0];
+  const lead = party.find(a => a.cls === 'bard' && !dead.includes(a)) || party[0];   // a bard always insists on writing it up
   for (const a of party) {
     if (dead.includes(a)) continue;
     a.quests++; if (ok) a.wins++;
@@ -572,7 +581,7 @@ Core.resolve = (p, night) => {
   let fee = 0, payout = 0;
   if (ok) {
     fee = r.fee + (great && U.chance(0.5) ? Math.round(r.fee * 0.15) : 0);
-    payout = p.pay * party.length;
+    payout = p.pay * party.filter(a => a.cls !== 'monk').length;
     Core.money(fee, 'fees'); Core.money(-payout, 'payouts');
     S.renown += 5 + r.truth.r * 8 + (great ? 5 : 0);
     Core.faction(r.faction, 3); S.week.ok++;
@@ -586,6 +595,13 @@ Core.resolve = (p, night) => {
     Core.faction(r.faction, -4); S.week.fail++;
   }
   r.status = 'done'; p.status = 'done';
+  const unlicensed = party.filter(a => a.cls === 'witch' && !Core.licensed(a));
+  if (unlicensed.length && U.chance(0.5)) {
+    Core.money(-20, 'fines'); Core.faction('council', -2);
+    Core.addDoc({ kind: 'inquiry', from: 'Inspector Quillon, Millbrook Council', subject: 'Unlicensed practice of witchcraft', seal: '#2a4a7a',
+      body: ['NOTICE OF FINE', `${unlicensed.map(a => a.name).join(' and ')} practised hedge-craft at ${r.place} without a current Practitioner's Licence on file.`, 'The guild is fined 20 gold. The fine has been deducted. Licences are issued by the Council for 15 gold and run for four weeks.', 'Inspector Quillon'],
+      summary: `Fined 20g: unlicensed witchcraft on "${p.title}".` });
+  }
   // the Council checks your classification against what was actually found
   const misclassified = r.truth.r > p.rank || unready.length > 0;
   S.week.jobs++; if (misclassified) S.week.misclass++;
@@ -607,7 +623,9 @@ Core.resolve = (p, night) => {
   else lines.push(disaster ? 'It was a slaughter. We ran.' : 'We could not finish it. We came back.');
   if (hurt.length) lines.push(`Injured: ${hurt.map(a => a.first).join(', ')}.`);
   if (dead.length) lines.push(`${dead.map(a => a.name).join(' and ')} did not come back.`);
-  Core.addDoc({ kind: 'report', from: lead.name, subject: `Report: ${p.title}`, seal: '#5a3a1e', body: ['Guildmaster,', ...lines, `${lead.first}${party.length > 1 ? ', for the party' : ''}`],
+  if (lead.cls === 'bard') Core.addDoc({ kind: 'report', from: lead.name, subject: `A Ballad of ${p.title}`, seal: '#8a2a3a', body: Core.ballad(lead, p, r, { ok, great, disaster, hurt, dead, surprised }),
+    summary: `${lead.first} has written it up as a ballad. You'll have to read it to know how it went.`, outcome: ok ? 'ok' : 'fail' });
+  else Core.addDoc({ kind: 'report', from: lead.name, subject: `Report: ${p.title}`, seal: '#5a3a1e', body: ['Guildmaster,', ...lines, `${lead.first}${party.length > 1 ? ', for the party' : ''}`],
     summary: `${ok ? 'SUCCESS' : 'FAILED'}: ${p.title}. Found ${r.truth.n}.${dead.length ? ' CASUALTIES.' : ''}`, outcome: ok ? 'ok' : 'fail' });
   const ct = C.CLIENT_TYPES[r.ctype];
   if (ok) Core.addDoc({ kind: 'thanks', from: r.client, subject: `RE: ${r.subject}`, seal: ct.seal,
@@ -620,6 +638,7 @@ Core.resolve = (p, night) => {
     const items = [];
     for (const g of U.shuffle([...C.EXPENSES.general]).slice(0, 2)) items.push({ label: g[0], cost: U.ri(g[1], g[2]), fake: false });
     for (const h of r.truth.h) { const e = U.pick(C.EXPENSES[h]); items.push({ label: e[0], cost: U.ri(e[1], e[2]), fake: false }); }
+    if (party.some(a => a.cls === 'alchemist')) for (const g of U.shuffle([...C.EXPENSES.reagents]).slice(0, U.ri(1, 2))) items.push({ label: g[0], cost: U.ri(g[1], g[2]), fake: false });
     if (Core.has(claimant, 'padder')) {
       const n = 1 + Math.min(2, S.padding[claimant.id] || 0);
       const fakes = U.shuffle(C.EXPENSES.fake.filter(f => !items.some(i => i.label === f[0]) && !r.truth.h.some(h => (C.EXPENSES[h] || []).some(e => e[0] === f[0])))).slice(0, n);
@@ -653,6 +672,19 @@ Core.invoice = (from, what, amount, cat, due = 3) => {
   S.invoices.push(inv);
   Core.addDoc({ kind: 'invoice', inv: inv.id, from, subject: `Invoice: ${what}`, seal: cat === 'charter' ? '#2a4a7a' : '#6b6b6b', deadline: inv.due,
     body: ['INVOICE', `To: the Guildmaster, ${S.name}`, `For: ${what}`, `Amount due: ${amount} gold`, `Payable by: ${Core.dateStr(inv.due)}`, from], summary: `${from}: ${amount}g for ${what}.` });
+};
+Core.licensed = (a, ahead = 0) => ((S.flags.licences || {})[a.id] || 0) > S.day + ahead;
+// A bard's report: the facts are all in there, but you have to read for them.
+Core.ballad = (bard, p, r, o) => {
+  const out = [`Hear now, Guildmaster, the lay of ${r.place}!`, `We marched to answer ${r.subject.toLowerCase()}, and there we met ${r.truth.n}, a foe most terrible.`];
+  if (o.surprised.length) out.push(`No herald warned of ${o.surprised.join(' nor ')}, yet we faced it with hearts unbowed (and somewhat unprepared).`);
+  if (r.truth.r > p.rank) out.push(`Such a beast is not for ${C.RANKS[p.rank]}-ranked folk; a ${C.RANKS[r.truth.r]} would have been more fitting.`);
+  out.push(o.ok ? (o.great ? 'And lo! The foe was routed utterly, and songs shall be sung of it.' : 'And when the dust had settled, the field was ours.')
+    : (o.disaster ? 'Alas! Red was the grass, and swift our retreat.' : 'And so we withdrew with honour, to fight another day. The matter stands unfinished.'));
+  if (o.hurt.length) out.push(`${o.hurt.map(a => a.first).join(' and ')} bear${o.hurt.length > 1 ? '' : 's'} wounds that will become fine scars.`);
+  if (o.dead.length) out.push(`Weep for ${o.dead.map(a => a.name).join(' and ')}, who sing now with the gods.`);
+  out.push(`Composed in haste by ${bard.first}. (Music available on request.)`);
+  return out;
 };
 Core.morningMail = (first) => {
   const d = S.day, gr = Core.guildRank();
@@ -719,6 +751,13 @@ Core.morningMail = (first) => {
   }
   // bills
   if (d % 7 === 1) Core.invoice('Millbrook Council', 'weekly charter fee', 40 + gr * 20, 'charter', 4);
+  const monks = S.roster.filter(a => a.cls === 'monk');
+  if (d % 7 === 1 && monks.length) Core.invoice('The Abbey of the Still Hand', `weekly tithe for ${monks.map(a => a.first).join(', ')}`, monks.reduce((s, a) => s + 8 + a.rank * 6, 0), 'payouts', 4);
+  for (const w of S.roster.filter(a => a.cls === 'witch' && !Core.licensed(a, 3))) {
+    if (S.invoices.some(i => i.licence === w.id && !i.paid)) continue;
+    Core.invoice('Millbrook Council', `Practitioner's Licence (4 weeks) for ${w.name}`, 15, 'charter', 3);
+    S.invoices[S.invoices.length - 1].licence = w.id;
+  }
   if (U.chance(0.35)) {
     const opt = U.pick([['Hopsworth Brewery', 'ale delivery', 25 + S.fac.tavern * 15, 'supplies'], ['Goody Wren\'s Laundry', 'bedding and linens', 10 + S.roster.length * 3, 'supplies'],
       ['Oakes & Son, Roofers', 'emergency roof repairs', U.ri(30, 60), 'repairs'], ['Pellet the Chandler', 'candles and lamp oil', U.ri(12, 25), 'supplies'], ['Mill Street Bakery', 'bread for the tavern', U.ri(15, 30), 'supplies']]);

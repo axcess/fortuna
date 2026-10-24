@@ -1,4 +1,68 @@
 {
+ "alchemist_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 53,
+   "w": 28
+  }
+ },
+ "alchemist_gnome": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 37,
+   "w": 20
+  }
+ },
+ "alchemist_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 56,
+   "w": 25
+  }
+ },
+ "alchemist_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 59,
+   "w": 29
+  }
+ },
+ "bard_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 59,
+   "w": 22
+  }
+ },
+ "bard_halfling": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 41,
+   "w": 24
+  }
+ },
+ "bard_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 56,
+   "w": 25
+  }
+ },
+ "bard_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 16,
+   "h": 57,
+   "w": 32
+  }
+ },
  "brom": {
   "portrait": true,
   "stand": {
@@ -39,6 +103,48 @@
    "w": 29
   }
  },
+ "fam_fox": {
+  "stand": {
+   "fx": 6,
+   "h": 20,
+   "w": 16
+  }
+ },
+ "fam_golem": {
+  "stand": {
+   "fx": 10,
+   "h": 19,
+   "w": 20
+  }
+ },
+ "fam_lantern": {
+  "stand": {
+   "fx": 4,
+   "h": 13,
+   "w": 7
+  }
+ },
+ "fam_raven": {
+  "stand": {
+   "fx": 7,
+   "h": 13,
+   "w": 13
+  }
+ },
+ "fam_whelp": {
+  "stand": {
+   "fx": 8,
+   "h": 18,
+   "w": 18
+  }
+ },
+ "fam_wisp": {
+  "stand": {
+   "fx": 3,
+   "h": 9,
+   "w": 7
+  }
+ },
  "kael": {
   "portrait": true,
   "stand": {
@@ -76,6 +182,38 @@
   "stand": {
    "fx": 14,
    "h": 58,
+   "w": 29
+  }
+ },
+ "monk_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 48,
+   "w": 27
+  }
+ },
+ "monk_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 57,
+   "w": 22
+  }
+ },
+ "monk_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 56,
+   "w": 23
+  }
+ },
+ "monk_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 59,
    "w": 29
   }
  },
@@ -151,6 +289,38 @@
    "w": 29
   }
  },
+ "summoner_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 49,
+   "w": 28
+  }
+ },
+ "summoner_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 56,
+   "w": 23
+  }
+ },
+ "summoner_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 56,
+   "w": 23
+  }
+ },
+ "summoner_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 59,
+   "w": 29
+  }
+ },
  "tamsin": {
   "portrait": true,
   "stand": {
@@ -189,6 +359,38 @@
    "fx": 14,
    "h": 59,
    "w": 32
+  }
+ },
+ "witch_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 59,
+   "w": 23
+  }
+ },
+ "witch_halfling": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 47,
+   "w": 26
+  }
+ },
+ "witch_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 57,
+   "w": 23
+  }
+ },
+ "witch_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 59,
+   "w": 30
   }
  }
 }

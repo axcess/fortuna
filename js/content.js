@@ -27,6 +27,11 @@ C.CLASSES = {
   mage:    { name: 'Mage',    color: '#4a55b8', counters: ['magic', 'fire'] },
   rogue:   { name: 'Rogue',   color: '#3d3d4a', counters: ['stealth', 'night'] },
   paladin: { name: 'Paladin', color: '#c8b070', counters: ['undead', 'escort'] },
+  summoner:  { name: 'Summoner',  color: '#5a3a7a', counters: ['magic', 'swarm'] },     // keeps a familiar
+  bard:      { name: 'Bard',      color: '#8a2a3a', counters: ['escort', 'stealth'] },  // writes reports as ballads; busks for renown
+  alchemist: { name: 'Alchemist', color: '#a8582a', counters: ['poison', 'fire'] },     // real reagent bills; helps the infirmary
+  monk:      { name: 'Monk',      color: '#d08a2a', counters: ['swarm', 'stealth'] },   // no pay, but a weekly tithe; never pads or lies
+  witch:     { name: 'Hedge-witch', color: '#4a3a4a', counters: ['magic', 'night'] }, // needs a licence; reads hidden signs in letters
 };
 
 C.HAZ = {
@@ -193,6 +198,7 @@ C.EXPENSES = {
   magic: [['Warding chalk', 8, 14], ['Antimagic charm (used)', 18, 30]],
   poison: [['Antitoxin, 2 doses', 14, 22], ['Face cloths, boiled', 2, 4]],
   fire: [['Fire-ward salve', 10, 18], ['Water barrels', 4, 8]],
+  reagents: [['Salamander ash, 3 phials', 12, 20], ['Quicksilver (1 flask)', 15, 26], ['Distilled nightshade', 9, 16], ['Ground unicorn horn (substitute)', 14, 22], ['Retort, cracked and replaced', 8, 15]],
   giant: [['Caltrops', 6, 10], ['Replacement shield', 20, 35]],
   swarm: [['Arrows, 3 dozen', 9, 15], ['Oil flasks', 6, 12]],
   stealth: [['Bribes (unspecified)', 10, 25], ['Dark cloaks', 6, 12]],

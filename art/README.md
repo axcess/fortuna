@@ -29,4 +29,11 @@ Recruit looks are named `<class>_<variant>` (for example `warrior_orc`, `mage_gn
     python3 tools/cut_sprites.py art/source/class_paladin.jpg paladin_dwarf paladin_human paladin_orc paladin_elf
     python3 tools/cut_sprites.py art/source/class_cleric.jpg cleric_human cleric_orc cleric_dwarf cleric_elf
 
-Rangers and staff have no sheets yet and are still drawn procedurally.
+    python3 tools/cut_sprites.py art/source/class_summoner.jpg summoner_human summoner_orc summoner_dwarf summoner_elf
+    python3 tools/cut_sprites.py art/source/class_bard.jpg bard_human bard_halfling bard_orc bard_elf
+    python3 tools/cut_sprites.py art/source/class_alchemist.jpg alchemist_dwarf alchemist_human alchemist_gnome alchemist_orc
+    python3 tools/cut_sprites.py art/source/class_monk.jpg monk_human monk_orc monk_dwarf monk_elf
+    python3 tools/cut_sprites.py art/source/class_witch.jpg witch_human witch_orc witch_halfling witch_elf
+    python3 tools/cut_sprites.py art/source/familiars.jpg fam_golem fam_whelp fam_wisp fam_fox fam_raven fam_lantern --noportrait
+
+Familiars (`fam_*`) are drawn beside summoners; `Scenes.FLOATS` lists the ones that hover. Rangers and staff have no sheets yet and are still drawn procedurally.

@@ -157,6 +157,19 @@ Scenes.drawSprite = (ctx, x, y, a, id, o) => {
   if (!o.sit) { ctx.fillStyle = 'rgba(10,6,4,0.35)'; ctx.fillRect(x - 6, y, 13, 1); ctx.fillRect(x - 4, y + 1, 9, 1); }
   ctx.drawImage(img, 0, waist, m.w, rows - waist, left, top + waist / RES, W, (rows - waist) / RES);
   ctx.drawImage(img, 0, 0, m.w, waist, left, top + bob / RES, W, waist / RES);
+  if (a.cls === 'summoner') Scenes.drawFamiliar(ctx, x + 10, y, a);
+};
+// A summoner's familiar sits or hovers at their right. Which one is fixed by the member's id.
+Scenes.FLOATS = { fam_wisp: 12, fam_lantern: 11 };   // hover height in units
+Scenes.drawFamiliar = (ctx, x, y, a) => {
+  const pool = Scenes.LOOKS.fam;
+  if (!pool) return;
+  const id = pool[(Math.imul(a.id + 101, 2246822519) >>> 0) % pool.length], img = Scenes.sprites[id + '_stand'];
+  if (!img) return;
+  const m = SPRITES[id].stand, t = Scenes.frame + a.id * 53;
+  const lift = Scenes.FLOATS[id] ? Scenes.FLOATS[id] + Math.round(Math.sin(t / 20) * 2) / RES : 0;
+  ctx.fillStyle = 'rgba(10,6,4,0.3)'; ctx.fillRect(x - 3, y, 7, 1);
+  ctx.drawImage(img, x - m.fx / RES, y - lift - m.h / RES, m.w / RES, m.h / RES);
 };
 
 // feet at (x, y); about 24px tall standing
