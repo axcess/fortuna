@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guildhall: Rise of the Rusty Flagon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jacquard+12&family=Pixelify+Sans:wght@400;600&family=VT323&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!--GAME-->
+<div id="app">
+  <header id="topbar">
+    <div class="brand"><span id="gName">The Rusty Flagon</span><span class="sub">Adventurers' Guild</span></div>
+    <div class="stat-row">
+      <div class="chip" title="Date and time"><span id="weather">☀️</span> <span id="date"></span> <b id="clock"></b></div>
+      <div class="chip gold-chip" title="Treasury"><span>💰</span><b id="gold">0</b></div>
+      <div class="chip" title="Guild rank and renown"><span class="rankchip" id="rank">F</span><span class="rk"><span id="renown">0</span><span class="rankbar"><i id="rankbar"></i></span></span></div>
+      <div class="chip" title="Average mood of everyone in the hall"><b id="morale">🙂</b></div>
+      <div class="chip" title="Adventurers / roster cap">⚔️ <b id="headcount">0</b></div>
+      <div class="chip debt" title="Owed to the Copperhand Consortium">📜 <b id="debt">0</b></div>
+    </div>
+    <div class="controls">
+      <div id="speed" role="group" aria-label="Game speed">
+        <button data-s="0" title="Pause (Space)">❚❚</button><button data-s="1" class="on" title="Normal (1)">▶</button><button data-s="2" title="Fast (2)">▶▶</button><button data-s="3" title="Fastest (3)">▶▶▶</button>
+      </div>
+      <button id="menuBtn" title="Menu">☰</button>
+    </div>
+  </header>
+  <main id="main">
+    <section id="viewport">
+      <canvas id="cv"></canvas>
+      <div id="overlays" role="group" aria-label="Map overlays">
+        <button data-o="none" class="on">Hall</button><button data-o="appeal">Appeal</button><button data-o="cond">Floors</button><button data-o="traffic">Traffic</button>
+      </div>
+      <div id="legend"></div>
+      <div id="tip"></div>
+      <div id="pausedTag">PAUSED</div>
+      <aside id="inspector"></aside>
+    </section>
+    <aside id="side">
+      <nav id="tabs">
+        <button data-tab="roster" class="on">Roster</button><button data-tab="quests">Quests</button><button data-tab="build">Build</button><button data-tab="guild">Guild</button><button data-tab="ledger">Ledger</button>
+      </nav>
+      <div id="hint"></div>
+      <div id="panel"></div>
+    </aside>
+  </main>
+  <footer id="ticker"></footer>
+</div>
+<div id="modal"></div>
+<div id="toasts"></div>
+<script src="js/data.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<!--/GAME-->
+</body>
+</html>
