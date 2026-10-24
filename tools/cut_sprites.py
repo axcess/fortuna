@@ -3,8 +3,8 @@
 
     python3 tools/cut_sprites.py SHEET.jpg brom pip tamsin kael [--pose stand|sit]
 
-Figures must stand left to right with empty magenta gaps between them, one
-name per figure in that order. Writes, for each figure:
+Figures stand left to right and must not touch each other (a weapon may reach
+over a neighbour, but not into them), one name per figure in that order. Writes, for each figure:
     art/sprites/<name>_<pose>.png        the sprite, at 2x game resolution
     art/sprites/<name>_portrait.png      a head-and-shoulders crop (stand only)
 and updates art/sprites/manifest.json + js/sprites.js (sizes and foot anchors).
@@ -14,6 +14,8 @@ sheets stay the same size relative to each other, as long as the sheets were
 generated at the same resolution and scale.
 """
 import json, sys, os
+from collections import deque
+
 import numpy as np
 from PIL import Image
 
@@ -48,17 +50,51 @@ def despill(fg, a, reach=8):
     return np.clip(out, 0, 255)
 
 
-def figures(alpha):
-    """Column spans of figures separated by empty columns."""
-    cols = (alpha > 0.5).sum(0) > 2
-    spans, start = [], None
-    for x, on in enumerate(cols):
-        if on and start is None: start = x
-        if not on and start is not None:
-            if x - start > 20: spans.append((start, x))
-            start = None
-    if start is not None: spans.append((start, len(cols)))
-    return spans
+def components(mask):
+    """Label 8-connected regions of a boolean mask (plain BFS, no scipy)."""
+    h, w = mask.shape
+    lab = np.zeros((h, w), np.int32)
+    n = 0
+    for y0, x0 in zip(*np.nonzero(mask)):
+        if lab[y0, x0]: continue
+        n += 1; lab[y0, x0] = n; q = deque([(y0, x0)])
+        while q:
+            y, x = q.popleft()
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    yy, xx = y + dy, x + dx
+                    if 0 <= yy < h and 0 <= xx < w and mask[yy, xx] and not lab[yy, xx]:
+                        lab[yy, xx] = n; q.append((yy, xx))
+    return lab, n
+
+
+def figures(alpha, count):
+    """One mask per figure, left to right. Figures are the big connected shapes;
+    stray bits (a detached arrow, a strap) join the figure nearest to them. Works
+    even when a weapon reaches over a neighbour's columns, as long as it doesn't touch."""
+    small = alpha[::2, ::2] > 0.5
+    lab, n = components(small)
+    area = np.bincount(lab.ravel())[1:]
+    order = np.argsort(-area)
+    big = sorted(order[:count] + 1, key=lambda i: np.nonzero(lab == i)[1].mean())
+    if len(big) < count or area[order[count - 1]] < area[order[0]] * 0.15:
+        sys.exit(f'Found {int((area > area.max() * 0.15).sum())} figures but got {count} names '
+                 '(figures must not touch each other)')
+    cx = [np.nonzero(lab == i)[1].mean() for i in big]
+    owner = np.zeros(n + 1, np.int32)
+    for k, i in enumerate(big): owner[i] = k + 1
+    for i in range(1, n + 1):
+        if not owner[i]:
+            owner[i] = 1 + int(np.argmin([abs(np.nonzero(lab == i)[1].mean() - c) for c in cx]))
+    full = np.kron(owner[lab], np.ones((2, 2), np.int32))[:alpha.shape[0], :alpha.shape[1]]
+    # grow each figure's region a little so its soft edge pixels come along
+    masks = []
+    for k in range(1, count + 1):
+        m = full == k
+        for _ in range(3):
+            g = m.copy(); g[1:] |= m[:-1]; g[:-1] |= m[1:]; g[:, 1:] |= m[:, :-1]; g[:, :-1] |= m[:, 1:]; m = g
+        masks.append(m)
+    return masks
 
 
 def shrink(fg, a, factor):
@@ -79,17 +115,15 @@ def main():
     sheet, names = args[0], args[1:]
     rgb = np.asarray(Image.open(sheet).convert('RGB')).astype(float)
     fg, a = key_out(rgb)
-    spans = figures(a)
-    if len(spans) != len(names):
-        sys.exit(f'Found {len(spans)} figures but got {len(names)} names: spans {spans}')
+    masks = figures(a, len(names))
     os.makedirs(OUT, exist_ok=True)
     man_path = os.path.join(OUT, 'manifest.json')
     manifest = json.load(open(man_path)) if os.path.exists(man_path) else {}
-    for name, (x0, x1) in zip(names, spans):
-        sub = a[:, x0:x1]
-        rows = np.where((sub > 0.5).sum(1) > 0)[0]
-        y0, y1 = rows[0], rows[-1] + 1
-        fa, ff = a[y0:y1, x0:x1], fg[y0:y1, x0:x1]
+    for name, mask in zip(names, masks):
+        own = np.where(mask, a, 0)
+        ys, xs = np.nonzero(own > 0.5)
+        y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+        fa, ff = own[y0:y1, x0:x1], fg[y0:y1, x0:x1]
         spr = shrink(ff, fa, SCALE)
         spr.save(os.path.join(OUT, f'{name}_{pose}.png'))
         w, h = spr.size
@@ -100,14 +134,19 @@ def main():
         entry = manifest.setdefault(name, {})
         entry[pose] = {'w': w, 'h': h, 'fx': foot_x}
         if pose == 'stand':
-            # portrait: a square around the head, from the top of the figure
-            head_rows = fa[: int(fa.shape[0] * 0.18)] > 0.5
-            hx = np.where(head_rows.any(0))[0]
-            cx = (hx[0] + hx[-1]) / 2 if len(hx) else fa.shape[1] / 2
-            side = int(fa.shape[0] * 0.36)
+            # portrait: a square around the head. Centre on the body (feet) and find the
+            # top of the head in a narrow middle band, so a sword hilt or staff poking
+            # up over a shoulder doesn't count as the head.
+            H = fa.shape[0]
+            feet_src = np.where((fa[int(H * 0.92):] > 0.5).any(0))[0]
+            cx = (feet_src[0] + feet_src[-1]) / 2 if len(feet_src) else fa.shape[1] / 2
+            band = fa[:, int(max(0, cx - H * 0.05)):int(cx + H * 0.05) + 1] > 0.5
+            head_top = int(np.argmax(band.sum(1) >= 3))
+            side = int((H - head_top) * 0.36)
+            top0 = max(0, head_top - int(side * 0.06))
             left = int(max(0, min(fa.shape[1] - side, cx - side / 2))) if fa.shape[1] >= side else 0
             crop_a = np.zeros((side, side)); crop_f = np.zeros((side, side, 3))
-            pa = fa[:side, left:left + side]; pf = ff[:side, left:left + side]
+            pa = fa[top0:top0 + side, left:left + side]; pf = ff[top0:top0 + side, left:left + side]
             ox = (side - pa.shape[1]) // 2
             crop_a[:pa.shape[0], ox:ox + pa.shape[1]] = pa; crop_f[:pa.shape[0], ox:ox + pa.shape[1]] = pf
             port = shrink(crop_f, crop_a, 96 / side)

@@ -7,12 +7,108 @@
    "w": 29
   }
  },
+ "cleric_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 53,
+   "w": 27
+  }
+ },
+ "cleric_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 57,
+   "w": 25
+  }
+ },
+ "cleric_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 54,
+   "w": 24
+  }
+ },
+ "cleric_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 60,
+   "w": 29
+  }
+ },
  "kael": {
   "portrait": true,
   "stand": {
    "fx": 12,
    "h": 58,
    "w": 25
+  }
+ },
+ "mage_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 56,
+   "w": 25
+  }
+ },
+ "mage_gnome": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 45,
+   "w": 26
+  }
+ },
+ "mage_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 57,
+   "w": 25
+  }
+ },
+ "mage_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 58,
+   "w": 29
+  }
+ },
+ "paladin_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 51,
+   "w": 27
+  }
+ },
+ "paladin_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 57,
+   "w": 25
+  }
+ },
+ "paladin_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 59,
+   "w": 28
+  }
+ },
+ "paladin_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 58,
+   "w": 28
   }
  },
  "pip": {
@@ -23,12 +119,76 @@
    "w": 19
   }
  },
+ "rogue_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 51,
+   "w": 27
+  }
+ },
+ "rogue_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 57,
+   "w": 24
+  }
+ },
+ "rogue_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 56,
+   "w": 24
+  }
+ },
+ "rogue_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 59,
+   "w": 29
+  }
+ },
  "tamsin": {
   "portrait": true,
   "stand": {
    "fx": 10,
    "h": 56,
    "w": 21
+  }
+ },
+ "warrior_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 49,
+   "w": 28
+  }
+ },
+ "warrior_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 56,
+   "w": 23
+  }
+ },
+ "warrior_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 57,
+   "w": 24
+  }
+ },
+ "warrior_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 59,
+   "w": 32
   }
  }
 }

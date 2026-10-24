@@ -26,6 +26,7 @@ C.CLASSES = {
   cleric:  { name: 'Cleric',  color: '#ddd5bd', counters: ['undead', 'poison'] },
   mage:    { name: 'Mage',    color: '#4a55b8', counters: ['magic', 'fire'] },
   rogue:   { name: 'Rogue',   color: '#3d3d4a', counters: ['stealth', 'night'] },
+  paladin: { name: 'Paladin', color: '#c8b070', counters: ['undead', 'escort'] },
 };
 
 C.HAZ = {

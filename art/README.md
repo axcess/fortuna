@@ -19,4 +19,14 @@ A painted room also needs an `alt` layout in `js/scenes.js` with its clickable z
 
     python3 tools/cut_sprites.py art/source/cast_starters_standing.jpg brom pip tamsin kael
 
-Names go left to right. It keys out the magenta, removes the magenta fringe, splits figures at empty columns, shrinks every sheet by the same factor (a human ends up 56 px tall), and writes `<name>_stand.png`, a 96×96 `<name>_portrait.png`, `manifest.json` and `js/sprites.js`. `Scenes.SPRITE_OF` in `js/scenes.js` maps a character's full name to their sprite; anyone without one is drawn procedurally.
+Names go left to right. It keys out the magenta, removes the magenta fringe, separates the figures (they mustn't touch; a weapon reaching over a neighbour is fine), shrinks every sheet by the same factor (a human ends up 56 px tall), and writes `<name>_stand.png`, a 96×96 `<name>_portrait.png`, `manifest.json` and `js/sprites.js`. `Scenes.SPRITE_OF` in `js/scenes.js` maps a named character's full name to their sprite.
+
+Recruit looks are named `<class>_<variant>` (for example `warrior_orc`, `mage_gnome`). Every member without a named sprite gets one of their class's looks, chosen from their id so it never changes. The class sheets so far:
+
+    python3 tools/cut_sprites.py art/source/class_warrior.jpg warrior_human warrior_orc warrior_dwarf warrior_elf
+    python3 tools/cut_sprites.py art/source/class_mage.jpg mage_human mage_orc mage_gnome mage_elf
+    python3 tools/cut_sprites.py art/source/class_rogue.jpg rogue_human rogue_orc rogue_dwarf rogue_elf
+    python3 tools/cut_sprites.py art/source/class_paladin.jpg paladin_dwarf paladin_human paladin_orc paladin_elf
+    python3 tools/cut_sprites.py art/source/class_cleric.jpg cleric_human cleric_orc cleric_dwarf cleric_elf
+
+Rangers and staff have no sheets yet and are still drawn procedurally.

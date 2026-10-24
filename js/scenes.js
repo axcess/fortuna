@@ -129,12 +129,21 @@ Scenes.whereabouts = () => {
 };
 
 // ------------------------------------------------------------------ people --
-// Painted sprites for named characters (art/sprites, sizes in device pixels).
-// Everyone else is drawn procedurally below.
+// Painted sprites (art/sprites, sizes in device pixels). Named characters have
+// their own; other members get one of their class's looks (warrior_orc, ...),
+// picked from their id so it never changes. Staff and classes without painted
+// looks yet are drawn procedurally below.
 Scenes.SPRITE_OF = { 'Brom Ironfoot': 'brom', 'Pip Quickfinger': 'pip', 'Tamsin Fairweather': 'tamsin', 'Kael Ashgrove': 'kael' };
 Scenes.sprites = {};
+Scenes.LOOKS = {};
+if (typeof SPRITES !== 'undefined') {
+  for (const id in SPRITES) { const m = id.match(/^([a-z]+)_/); if (m) (Scenes.LOOKS[m[1]] = Scenes.LOOKS[m[1]] || []).push(id); }
+}
 Scenes.spriteFor = (a) => {
-  const id = a && Scenes.SPRITE_OF[a.name];
+  if (!a || !a.name) return null;
+  let id = Scenes.SPRITE_OF[a.name];
+  const pool = Scenes.LOOKS[a.cls];
+  if (!id && pool) id = pool[(Math.imul(a.id, 2654435761) >>> 0) % pool.length];
   return id && Scenes.sprites[id + '_stand'] ? id : null;
 };
 // Front-facing sprite with feet at (x, y). Until seated sheets exist, a seated
