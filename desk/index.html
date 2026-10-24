@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Guildmaster's Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=IM+Fell+English:ital@0;1&family=Special+Elite&family=UnifrakturMaguntia&family=Old+Standard+TT:wght@400;700&family=Alegreya+Sans:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/desk.css">
+</head>
+<body>
+<!--GAME-->
+<div id="app">
+  <header id="top">
+    <div class="who"><span id="gname"></span><span id="date"></span></div>
+    <div class="meters">
+      <div class="m clockm" title="Your working day runs 08:00 to 18:00. You can stay until 22:00, but you'll be tired tomorrow."><span id="clock">08:00</span><span class="track"><i id="dayprog"></i></span></div>
+      <div class="m" title="Focus. Low focus blurs your reading and slows you down."><span class="lbl">Focus</span><span class="track"><i id="focusbar"></i></span><span id="sips" title="Coffee left in the mug"></span></div>
+      <div class="m" title="Gold in the strongbox"><span class="lbl">Gold</span><b id="gold">0</b></div>
+      <div class="m" title="Guild rank and renown"><span class="lbl">Rank</span><b id="rank">F</b><small id="renown"></small></div>
+      <div class="m" title="Unfiled paperwork"><span class="lbl">Inbox</span><b id="unread">0</b></div>
+    </div>
+    <div class="ctl"><button id="clockout" class="stamp">Clock out</button><button id="menu" class="ghost" aria-label="Menu">☰</button></div>
+  </header>
+  <main id="stage">
+    <div id="frame">
+      <canvas id="scene"></canvas>
+      <div id="spots"></div>
+      <div id="talk" role="dialog" aria-live="polite"></div>
+    </div>
+    <div id="statusline"><span id="where"></span><span id="caption"></span><span id="facinfo"></span></div>
+  </main>
+</div>
+<div id="veil"></div>
+<section id="sheet" class="sheet" role="dialog" aria-modal="true"></section>
+<div id="night"></div>
+<div id="toasts"></div>
+<script src="js/content.js"></script>
+<script src="js/core.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<!--/GAME-->
+</body>
+</html>
