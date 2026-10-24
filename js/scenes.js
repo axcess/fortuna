@@ -940,6 +940,40 @@ Scenes.yard.alt = {
   ],
 };
 
+// The inn corridor, fitted to art/inn.png; inn_infirmary shows the infirmary door
+Scenes.inn.alt = {
+  variants: ['inn_infirmary'],
+  key: () => [S.fac.infirmary].join(),
+  base(ctx) {
+    ctx.drawImage((S.fac.infirmary && Scenes.art.inn_infirmary) || Scenes.art.inn, 0, 0, SW, SH);
+  },
+  anim(ctx) {
+    const f = Math.floor(Scenes.frame / 5);
+    for (const [cx, cy] of [[8, 60], [102, 63], [160, 64], [220, 64], [292, 64], [300, 83]]) {
+      const k = (f + cx) % 3; px(ctx, cx, cy - (k === 1 ? 1 : 0), 1, 3, '#ffd866'); px(ctx, cx, cy + 1, 1, 1, '#fff6c0');
+    }
+    if (S.staff.innkeeper) {
+      ctx.save(); ctx.beginPath(); ctx.rect(270, 50, 50, 42); ctx.clip();
+      Scenes.person(ctx, 296, 103, { id: 96, look: { skin: '#f1c9a5', hair: '#a0522d', style: 1 } }, { cloth: '#4a6a4a', apron: true });
+      ctx.restore();
+    }
+    const w = Scenes.whereabouts().inn;
+    Scenes.innSpots = w.slice(0, 5).map((a, i) => ({ a, x: 70 + i * 46, y: 168 }));
+    for (const s of Scenes.innSpots) Scenes.person(ctx, s.x, s.y, s.a);
+  },
+  light(ctx, d) {
+    for (const [lx, ly] of [[8, 62], [102, 65], [160, 66], [220, 66], [292, 66]]) Art.glow(ctx, lx, ly, 26, '255,200,110', 0.1 + d * 0.3);
+    Art.glow(ctx, 300, 86, 12, '255,210,130', 0.12);
+  },
+  spots: () => [
+    { x: 55, y: 55, w: 215, h: 73, label: () => `Rooms: ${S.roster.length} of ${Core.capacity()} beds taken`, act: () => UI.innRooms() },
+    ...(S.fac.infirmary ? [{ x: 233, y: 55, w: 37, h: 73, label: 'Infirmary', act: () => UI.innRooms() }] : []),
+    { x: 280, y: 86, w: 34, h: 46, label: 'Guest book', act: () => UI.innRooms() },
+    { x: 0, y: 90, w: 50, h: 72, label: 'Stairs: back down to the hall', act: () => UI.go('hall') },
+    ...(Scenes.innSpots || []).map(s => ({ x: s.x - 8, y: s.y - 28, w: 17, h: 30, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
+  ],
+};
+
 // every scene draws through the shared compositor, using painted art when present
 for (const name of Scenes.ROOMS) {
   const sc = Scenes[name], drawnSpots = sc.spots;
