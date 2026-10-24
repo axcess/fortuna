@@ -321,6 +321,38 @@
    "w": 19
   }
  },
+ "ranger_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 58,
+   "w": 26
+  }
+ },
+ "ranger_halfling": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 38,
+   "w": 28
+  }
+ },
+ "ranger_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 57,
+   "w": 25
+  }
+ },
+ "ranger_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 59,
+   "w": 29
+  }
+ },
  "rogue_dwarf": {
   "portrait": true,
   "stand": {
