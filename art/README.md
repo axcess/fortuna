@@ -1,10 +1,10 @@
 # Painted room art
 
-Drop a 320×180 PNG here named after a room (`office.png`, `hall.png`, `tavern.png`, `yard.png`, `inn.png`, `academy.png`) and the game uses it as that room's background. A room without an image keeps its drawn art.
+Drop a 640×360 PNG here named after a room (`office.png`, `hall.png`, `tavern.png`, `yard.png`, `inn.png`, `academy.png`) and the game uses it as that room's background. A room without an image keeps its drawn art.
 
 A painted room also needs an `alt` layout in `js/scenes.js` with its clickable zones and animation anchors fitted to the image. All six rooms have one. A room can also list upgrade variants (`yard_2.png`, `yard_3.png`, `inn_infirmary.png`) that replace the base image as facilities are built.
 
-`source/` keeps the full-size originals (1280×720). The game files are those shrunk to 320×180 with box (area-average) resampling; no palette reduction.
+`source/` keeps the full-size originals. The game files are those shrunk to 640×360 with box (area-average) resampling; no palette reduction. The game draws at 640×360 but its coordinates stay in 320×180 units (`RES = 2` in `js/scenes.js`).
 
 - `office.png`: generated with Z-Image Turbo in ComfyUI.
 - `hall.png`: generated with Nano Banana 2.1, using the office as a style reference.
@@ -12,3 +12,11 @@ A painted room also needs an `alt` layout in `js/scenes.js` with its clickable z
 - `yard.png`, `yard_2.png`, `yard_3.png`: generated with Nano Banana 2.1 (levels 1–3; the upgrades are edits of the base image).
 - `inn.png`, `inn_infirmary.png`: generated with Nano Banana 2.1 (the infirmary version is an edit of the base).
 - `academy.png`: generated with Nano Banana 2.1.
+
+## Character sprites
+
+`sprites/` holds cut-out characters made from lineup sheets on a flat magenta (#FF00FF) background, e.g. `source/cast_starters_standing.jpg` (Nano Banana 2.1). Cut a sheet with:
+
+    python3 tools/cut_sprites.py art/source/cast_starters_standing.jpg brom pip tamsin kael
+
+Names go left to right. It keys out the magenta, removes the magenta fringe, splits figures at empty columns, shrinks every sheet by the same factor (a human ends up 56 px tall), and writes `<name>_stand.png`, a 96×96 `<name>_portrait.png`, `manifest.json` and `js/sprites.js`. `Scenes.SPRITE_OF` in `js/scenes.js` maps a character's full name to their sprite; anyone without one is drawn procedurally.

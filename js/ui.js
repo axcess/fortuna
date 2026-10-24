@@ -60,7 +60,7 @@ setInterval(UI.ambient, 1800);
 
 // ------------------------------------------------------------------ frame --
 UI.init = () => {
-  const cv = $('#scene'); Scenes.ctx = cv.getContext('2d'); cv.width = SW; cv.height = SH;
+  const cv = $('#scene'); Scenes.ctx = cv.getContext('2d'); cv.width = SW * RES; cv.height = SH * RES;
   $('#clockout').onclick = () => UI.clockOut();
   $('#menu').onclick = () => UI.menu();
   window.addEventListener('keydown', (e) => { if ((e.key === 'l' || e.key === 'L') && !/INPUT|TEXTAREA/.test(e.target.tagName) && !$('#night').classList.contains('open')) UI.toggleLabels(); if (e.key === 'Escape') { if ($('#talk').classList.contains('open')) UI.closeTalk(); else UI.close(); } });
@@ -356,7 +356,7 @@ UI.rosterView = () => {
 UI.memberView = (id) => {
   const a = Core.adv(id);
   if (!a) return UI.show('<p class="empty">No longer on the roster.</p>', { title: 'Roster book' });
-  const h = `<div class="member"><canvas id="por" width="40" height="40"></canvas><div>
+  const h = `<div class="member"><canvas id="por" width="96" height="96"></canvas><div>
     <h3>${esc(a.name)}</h3><p>${C.CLASSES[a.cls].name}, Rank ${C.RANKS[a.rank]} · joined ${a.joined ? Core.dateStr(a.joined) : 'before your time'}</p>
     <p>Experience ${a.xp}/${C.XP_NEXT[a.rank]} · jobs ${a.wins} won of ${a.quests} · mood ${Math.round(a.morale)}</p>
     <p>On file: ${a.known.length ? a.known.map(t => `<span class="tag" title="${esc(C.TRAITS[t].desc)}">${C.TRAITS[t].name}</span>`).join(' ') : '<span class="hint">Nothing yet. Talk to them, interview them, watch their paperwork.</span>'}</p></div></div>
@@ -366,8 +366,10 @@ UI.memberView = (id) => {
 };
 UI.portrait = (cv, a) => {
   const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = '#3a2a1e'; ctx.fillRect(0, 0, 40, 40);
-  ctx.save(); ctx.scale(2, 2); Scenes.person(ctx, 10, 28, a); ctx.restore();
+  ctx.fillStyle = '#3a2a1e'; ctx.fillRect(0, 0, cv.width, cv.height);
+  const sid = Scenes.spriteFor(a), pic = sid && Scenes.sprites[sid + '_portrait'];
+  if (pic) { ctx.drawImage(pic, 0, 0, cv.width, cv.height); return; }
+  ctx.save(); ctx.scale(4, 4); Scenes.person(ctx, 12, 33, a); ctx.restore();   // 96px = 24 units
 };
 
 // --------------------------------------------------------- ledger, planner -
@@ -470,7 +472,7 @@ UI.talk = (a) => {
 };
 UI.say = (text, who, a) => {
   const el = $('#talk');
-  el.innerHTML = `${a ? '<canvas id="tpor" width="40" height="40"></canvas>' : ''}<div class="tbody">${who ? `<b>${esc(who)}</b>` : ''}<p>${esc(text)}</p></div>${UI.btn('Done', () => UI.closeTalk(), 'ghost')}`;
+  el.innerHTML = `${a ? '<canvas id="tpor" width="96" height="96"></canvas>' : ''}<div class="tbody">${who ? `<b>${esc(who)}</b>` : ''}<p>${esc(text)}</p></div>${UI.btn('Done', () => UI.closeTalk(), 'ghost')}`;
   el.classList.add('open');
   if (a) UI.portrait($('#tpor'), a);
   UI.refresh();

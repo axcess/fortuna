@@ -6,7 +6,8 @@
 'use strict';
 
 const Scenes = { cur: 'office', frame: 0, cache: {} };
-const SW = 320, SH = 180;
+const SW = 320, SH = 180;   // logical size; everything is drawn in these units
+const RES = 2;               // device pixels per unit (painted art and sprites are made at 640×360)
 
 // ------------------------------------------------------------------ toolkit --
 const Art = {};
@@ -128,9 +129,32 @@ Scenes.whereabouts = () => {
 };
 
 // ------------------------------------------------------------------ people --
+// Painted sprites for named characters (art/sprites, sizes in device pixels).
+// Everyone else is drawn procedurally below.
+Scenes.SPRITE_OF = { 'Brom Ironfoot': 'brom', 'Pip Quickfinger': 'pip', 'Tamsin Fairweather': 'tamsin', 'Kael Ashgrove': 'kael' };
+Scenes.sprites = {};
+Scenes.spriteFor = (a) => {
+  const id = a && Scenes.SPRITE_OF[a.name];
+  return id && Scenes.sprites[id + '_stand'] ? id : null;
+};
+// Front-facing sprite with feet at (x, y). Until seated sheets exist, a seated
+// person is the standing sprite cut off at the hip, resting on the seat at y.
+Scenes.drawSprite = (ctx, x, y, a, id, o) => {
+  const m = SPRITES[id].stand, img = Scenes.sprites[id + '_stand'];
+  const t = Scenes.frame + (a.id || 0) * 37;
+  const bob = Math.floor(t / 45) % 2 ? 1 : 0;   // breathing: the upper body dips one device pixel
+  const rows = o.sit ? Math.round(m.h * 0.58) : m.h, waist = Math.round(m.h * 0.55);
+  const left = x - m.fx / RES, top = y - rows / RES, W = m.w / RES;
+  if (!o.sit) { ctx.fillStyle = 'rgba(10,6,4,0.35)'; ctx.fillRect(x - 6, y, 13, 1); ctx.fillRect(x - 4, y + 1, 9, 1); }
+  ctx.drawImage(img, 0, waist, m.w, rows - waist, left, top + waist / RES, W, (rows - waist) / RES);
+  ctx.drawImage(img, 0, 0, m.w, waist, left, top + bob / RES, W, waist / RES);
+};
+
 // feet at (x, y); about 24px tall standing
 Scenes.person = (ctx, x, y, a, o = {}) => {
   x = Math.round(x); y = Math.round(y);
+  const sid = Scenes.spriteFor(a);
+  if (sid) return Scenes.drawSprite(ctx, x, y, a, sid, o);
   const cls = a.cls;
   const cloth = o.cloth || (cls ? C.CLASSES[cls].color : '#7a6a5a');
   const skin = (a.look && a.look.skin) || '#e0ac7e', hair = (a.look && a.look.hair) || '#5a3a1a';
@@ -250,13 +274,14 @@ Scenes.render = (sc, ctx, name) => {
   const key = name + (Scenes.usingArt(name) ? '+art' : '') + '|' + sc.key();
   let c = Scenes.cache[name];
   if (!c || c.key !== key) {
-    const cv = document.createElement('canvas'); cv.width = SW; cv.height = SH;
-    const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
+    const cv = document.createElement('canvas'); cv.width = SW * RES; cv.height = SH * RES;
+    const g = cv.getContext('2d'); g.imageSmoothingEnabled = false; g.scale(RES, RES);
     sc.base(g);
     c = Scenes.cache[name] = { key, cv };
   }
+  ctx.setTransform(RES, 0, 0, RES, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(c.cv, 0, 0);
+  ctx.drawImage(c.cv, 0, 0, SW, SH);
   if (sc.anim) sc.anim(ctx);
   const d = sc.outdoor ? Scenes.darkness(Scenes.hour()) * 1.2 : Scenes.darkness(Scenes.hour());
   if (d > 0) { ctx.fillStyle = `rgba(12,12,34,${d})`; ctx.fillRect(0, 0, SW, SH); }
@@ -707,9 +732,10 @@ Scenes.academy = {
 };
 
 // ------------------------------------------------------------ painted art --
-// A room can have a painted background in art/<room>.png (320×180). When it
+// A room can have a painted background in art/<room>.png (640×360). When it
 // loads, the room switches to its `alt` layout: the image replaces the drawn
 // static layer, and the alt version supplies hotspots and animations fitted to it.
+// Coordinates stay in 320×180 units.
 Scenes.ROOMS = ['office', 'hall', 'tavern', 'yard', 'inn', 'academy'];
 Scenes.art = {};
 Scenes.loadArt = () => {
@@ -722,6 +748,15 @@ Scenes.loadArt = () => {
       const vi = new Image();
       vi.onload = () => { Scenes.art[v] = vi; delete Scenes.cache[name]; };
       vi.src = `art/${v}.png`;
+    }
+  }
+  if (typeof SPRITES === 'undefined') return;
+  for (const id in SPRITES) {
+    for (const k of ['stand', 'portrait']) {
+      if (!SPRITES[id][k]) continue;
+      const img = new Image();
+      img.onload = () => { Scenes.sprites[id + '_' + k] = img; };
+      img.src = `art/sprites/${id}_${k}.png`;
     }
   }
 };

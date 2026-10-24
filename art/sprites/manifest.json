@@ -1,0 +1,34 @@
+{
+ "brom": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 50,
+   "w": 29
+  }
+ },
+ "kael": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 58,
+   "w": 25
+  }
+ },
+ "pip": {
+  "portrait": true,
+  "stand": {
+   "fx": 9,
+   "h": 40,
+   "w": 19
+  }
+ },
+ "tamsin": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 56,
+   "w": 21
+  }
+ }
+}
