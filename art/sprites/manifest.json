@@ -31,6 +31,38 @@
    "w": 29
   }
  },
+ "artificer_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 55,
+   "w": 30
+  }
+ },
+ "artificer_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 58,
+   "w": 22
+  }
+ },
+ "artificer_gnome": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 43,
+   "w": 21
+  }
+ },
+ "artificer_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 57,
+   "w": 25
+  }
+ },
  "bard_elf": {
   "portrait": true,
   "stand": {
@@ -101,6 +133,38 @@
    "fx": 14,
    "h": 60,
    "w": 29
+  }
+ },
+ "druid_dwarf": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 48,
+   "w": 24
+  }
+ },
+ "druid_elf": {
+  "portrait": true,
+  "stand": {
+   "fx": 13,
+   "h": 56,
+   "w": 25
+  }
+ },
+ "druid_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 12,
+   "h": 54,
+   "w": 26
+  }
+ },
+ "druid_orc": {
+  "portrait": true,
+  "stand": {
+   "fx": 15,
+   "h": 59,
+   "w": 31
   }
  },
  "fam_fox": {
@@ -305,7 +369,31 @@
    "w": 23
   }
  },
+ "summoner_elf_2": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 59,
+   "w": 23
+  }
+ },
+ "summoner_halfling": {
+  "portrait": true,
+  "stand": {
+   "fx": 10,
+   "h": 44,
+   "w": 21
+  }
+ },
  "summoner_human": {
+  "portrait": true,
+  "stand": {
+   "fx": 11,
+   "h": 56,
+   "w": 23
+  }
+ },
+ "summoner_human_2": {
   "portrait": true,
   "stand": {
    "fx": 11,
@@ -319,6 +407,14 @@
    "fx": 14,
    "h": 59,
    "w": 29
+  }
+ },
+ "summoner_orc_2": {
+  "portrait": true,
+  "stand": {
+   "fx": 14,
+   "h": 58,
+   "w": 28
   }
  },
  "tamsin": {

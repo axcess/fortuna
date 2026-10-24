@@ -287,7 +287,7 @@ UI.actions = (d) => {
     case 'resignation': return B('Offer a 30g bonus to stay', () => { UI.after(Core.resignation(d, true)); }, s + ' green') + B('Accept the resignation', () => { UI.after(Core.resignation(d, false)); }, s + ' red');
     case 'form9': return B(`Complete and file <small>15 min</small>`, () => { Core.fileForm9(d); UI.after('Form 9 filed.'); }, s + ' green');
     case 'census': return B(`File the return <small>15 min</small>`, () => { const ok = Core.census(d, C.RANKS.map((_, i) => +$('#cen' + i).value || 0)); UI.after(ok ? 'Census filed.' : 'Filed. (Something about those numbers nags at you.)'); }, s + ' green') + B('Check the roster book', () => UI.open(UI.rosterView), s + ' grey');
-    case 'proposal': return B(`Approve <small>${Core.BUILD[d.build].cost}g</small>`, () => { const e = Core.proposal(d, true); e ? UI.toast(e, 'bad') : UI.after('Works commissioned.'); }, s + ' green') + B('Decline', () => { Core.proposal(d, false); UI.after(); }, s + ' red');
+    case 'proposal': return B(`Approve <small>${Core.buildCost(d.build)}g</small>`, () => { const e = Core.proposal(d, true); e ? UI.toast(e, 'bad') : UI.after('Works commissioned.'); }, s + ' green') + B('Decline', () => { Core.proposal(d, false); UI.after(); }, s + ' red');
     default: return file;
   }
 };
@@ -411,7 +411,7 @@ UI.rules = () => UI.root(() => {
     <p><b>Read before you post.</b> Clients rarely say what they mean. Nobles understate. Farmers exaggerate. The gazette and the tavern know things the letter doesn't.</p>
     <p><b>Rank.</b> Members only take postings at or below their rank. Post too low and the wrong people take it. Post too high and nobody can.</p>
     <p><b>Pay.</b> Members want roughly ${C.RANKS.map((r, i) => `${r}: ${C.EXPECT[i]}g`).join(', ')} per head per day. Pay less and the posting sits. The guild keeps whatever the client's fee leaves over.</p>
-    <p><b>Hazards.</b> Members prepare for the hazards you list. An unlisted hazard is a nasty surprise. Some classes are better against some hazards (clerics against undead and disease, rangers against beasts and the dark, mages against sorcery and fire, rogues for discreet work, warriors for big things and crowds, paladins against undead and for guarding people on the road, summoners against sorcery and crowds, bards for escorts and quiet work, alchemists against poison and fire, monks against crowds and for quiet work, hedge-witches against sorcery and the dark).</p>
+    <p><b>Hazards.</b> Members prepare for the hazards you list. An unlisted hazard is a nasty surprise. Some classes are better against some hazards (clerics against undead and disease, rangers against beasts and the dark, mages against sorcery and fire, rogues for discreet work, warriors for big things and crowds, paladins against undead and for guarding people on the road, summoners against sorcery and crowds, bards for escorts and quiet work, alchemists against poison and fire, monks against crowds and for quiet work, hedge-witches against sorcery and the dark, artificers against large monsters and water, druids against beasts and poison. A druid in the party isn't caught out by unlisted beasts or water).</p>
     <p><b>Deadlines.</b> The inspector counts how much paperwork you handle on time.</p>
     <p class="hint">"Drink the coffee while it's hot. Nothing else in this office will wait for you." – H.G.</p>`, { title: 'Bookshelf' });
 });
@@ -455,7 +455,8 @@ UI.worksView = (fac) => {
   const opts = Core.buildOptions(fac);
   const extra = fac === 'inn' && !S.fac.infirmary ? Core.buildOptions('infirmary') : [];
   const all = [...opts, ...extra];
-  UI.show(`<p class="hint">Oakes &amp; Son do the work in two days. 10 minutes to sign the order.</p>${all.length ? all.map(([k, b]) => `<p>${esc(b.name)}: <b>${b.cost}g</b>${b.rank && Core.guildRank() < b.rank ? ` <span class="bad">(needs guild rank ${C.RANKS[b.rank]})</span>` : ''} ${UI.btn('Commission', () => { const e = Core.build(k); e ? UI.toast(e, 'bad') : UI.after('Works ordered.'); }, 'stamp small')}</p>`).join('') : '<p class="empty">Nothing more to build here for now.</p>'}
+  const fm = Core.foreman();
+  UI.show(`<p class="hint">Oakes &amp; Son do the work in two days.${fm ? ` ${esc(fm.first)} (artificer) will oversee it: a quarter off, and done in one.` : ''} 10 minutes to sign the order.</p>${all.length ? all.map(([k, b]) => `<p>${esc(b.name)}: <b>${Core.buildCost(k)}g</b>${b.rank && Core.guildRank() < b.rank ? ` <span class="bad">(needs guild rank ${C.RANKS[b.rank]})</span>` : ''} ${UI.btn('Commission', () => { const e = Core.build(k); e ? UI.toast(e, 'bad') : UI.after('Works ordered.'); }, 'stamp small')}</p>`).join('') : '<p class="empty">Nothing more to build here for now.</p>'}
     ${S.building.length ? `<h4>Under way</h4>${S.building.map(b => `<p>${esc(Core.BUILD[b.key].name)}, ready ${Core.dateStr(b.done + 1)}</p>`).join('')}` : ''}`, { title: 'Works' });
 };
 UI.trainForm = (kind) => UI.root(() => {

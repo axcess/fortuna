@@ -32,6 +32,8 @@ C.CLASSES = {
   alchemist: { name: 'Alchemist', color: '#a8582a', counters: ['poison', 'fire'] },     // real reagent bills; helps the infirmary
   monk:      { name: 'Monk',      color: '#d08a2a', counters: ['swarm', 'stealth'] },   // no pay, but a weekly tithe; never pads or lies
   witch:     { name: 'Hedge-witch', color: '#4a3a4a', counters: ['magic', 'night'] }, // needs a licence; reads hidden signs in letters
+  artificer: { name: 'Artificer', color: '#9a6a3a', counters: ['giant', 'water'] },     // idle ones oversee building works
+  druid:     { name: 'Druid',     color: '#4a6a3a', counters: ['beast', 'poison'] },    // read the land: unlisted beasts or water don't catch them out
 };
 
 C.HAZ = {

@@ -397,14 +397,17 @@ Core.BUILD = {
   academy: { fac: 'academy', lvl: 1, cost: 800, name: 'Found the Academy of Mind and Arcana', rank: 2 },
 };
 Core.buildOptions = (fac) => Object.entries(Core.BUILD).filter(([k, b]) => b.fac === fac && S.fac[fac] === b.lvl - 1 && !S.building.some(x => x.key === k));
+// An idle artificer oversees the builders: a quarter off, and done in a day.
+Core.foreman = () => S.roster.find(a => a.cls === 'artificer' && a.status === 'idle');
+Core.buildCost = (key) => Math.round(Core.BUILD[key].cost * (Core.foreman() ? 0.75 : 1));
 Core.build = (key) => {
-  const b = Core.BUILD[key];
+  const b = Core.BUILD[key], cost = Core.buildCost(key), fm = Core.foreman();
   if (b.rank && Core.guildRank() < b.rank) return `Requires guild rank ${C.RANKS[b.rank]}.`;
-  if (S.gold < b.cost) return 'Not enough gold.';
-  Core.money(-b.cost, 'works');
-  S.building.push({ key, done: S.day + 2 });
+  if (S.gold < cost) return 'Not enough gold.';
+  Core.money(-cost, 'works');
+  S.building.push({ key, done: S.day + (fm ? 1 : 2) });
   Core.spend(Core.COST.build, 1);
-  Core.log(`Commissioned: ${b.name}. Ready in two days.`);
+  Core.log(`Commissioned: ${b.name}. ${fm ? `${fm.first} is overseeing it; ready tomorrow.` : 'Ready in two days.'}`);
   return null;
 };
 Core.train = (a, kind, days) => {
@@ -549,8 +552,9 @@ Core.resolve = (p, night) => {
   if (!party.length) { p.status = 'done'; return; }
   let P = 0; for (const a of party) P += Core.power(a);
   const unready = [];
+  const druid = party.some(a => a.cls === 'druid');
   for (const h of r.truth.h) {
-    if (p.tags.includes(h)) P *= 1.06; else { P *= 0.82; unready.push(h); }
+    if (p.tags.includes(h) || (druid && (h === 'beast' || h === 'water'))) P *= 1.06; else { P *= 0.82; unready.push(h); }
     if (party.some(a => C.CLASSES[a.cls].counters.includes(h))) P *= 1.12;
   }
   const T = C.THREAT[r.truth.r] * (1 + 0.1 * Math.max(0, r.truth.h.length - 1));
