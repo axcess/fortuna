@@ -3,8 +3,9 @@
 
     python3 tools/cut_sprites.py SHEET.jpg brom pip tamsin kael [--pose stand|sit] [--noportrait]
 
-Figures stand left to right and must not touch each other (a weapon may reach
-over a neighbour, but not into them), one name per figure in that order. Writes, for each figure:
+Figures stand left to right, one name per figure in that order. Leave magenta
+between them if you can; touching figures are cut apart along their outlines,
+but whatever is hidden behind a neighbour stays missing. Writes, for each figure:
     art/sprites/<name>_<pose>.png        the sprite, at 2x game resolution
     art/sprites/<name>_portrait.png      a head-and-shoulders crop (stand only)
 and updates art/sprites/manifest.json + js/sprites.js (sizes and foot anchors).
