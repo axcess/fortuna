@@ -247,7 +247,7 @@ const lantern = (ctx, x, y) => {
 
 // Compose: cached static + animated + darkness + light
 Scenes.render = (sc, ctx, name) => {
-  const key = name + '|' + sc.key();
+  const key = name + (Scenes.usingArt(name) ? '+art' : '') + '|' + sc.key();
   let c = Scenes.cache[name];
   if (!c || c.key !== key) {
     const cv = document.createElement('canvas'); cv.width = SW; cv.height = SH;
@@ -706,8 +706,89 @@ Scenes.academy = {
   ],
 };
 
-// every scene draws through the shared compositor
-for (const name of ['office', 'hall', 'tavern', 'yard', 'inn', 'academy']) {
-  const sc = Scenes[name];
-  sc.draw = (ctx) => Scenes.render(sc, ctx, name);
+// ------------------------------------------------------------ painted art --
+// A room can have a painted background in art/<room>.png (320×180). When it
+// loads, the room switches to its `alt` layout: the image replaces the drawn
+// static layer, and the alt version supplies hotspots and animations fitted to it.
+Scenes.ROOMS = ['office', 'hall', 'tavern', 'yard', 'inn', 'academy'];
+Scenes.art = {};
+Scenes.loadArt = () => {
+  for (const name of Scenes.ROOMS) {
+    if (!Scenes[name].alt) continue;
+    const img = new Image();
+    img.onload = () => { Scenes.art[name] = img; delete Scenes.cache[name]; if (typeof UI !== 'undefined' && S) UI.refresh(); };
+    img.src = `art/${name}.png`;   // a missing file just leaves the drawn room in place
+  }
+};
+Scenes.usingArt = (name) => !!(Scenes.art[name] && Scenes[name].alt);
+
+// The office, fitted to art/office.png (coordinates in the 320×180 image)
+Scenes.office.alt = {
+  key: () => [Math.floor(S.min / 30), Math.min(20, S.inbox.filter(d => !d.done).length), S.sips, S.inbox.some(d => d.deadline != null && d.deadline <= S.day)].join(),
+  base(ctx) {
+    const h = Scenes.hour();
+    ctx.drawImage(Scenes.art.office, 0, 0, SW, SH);
+    // the window darkens through the evening; stars come out at night
+    if (h >= 17) {
+      // clip to the two pointed-arch panes of the window
+      ctx.save(); ctx.beginPath();
+      for (const [l, r] of [[247, 272], [273, 299]]) { const m = (l + r) / 2; ctx.moveTo(l, 74); ctx.lineTo(l, 24); ctx.quadraticCurveTo(l, 12, m, 5); ctx.quadraticCurveTo(r, 12, r, 24); ctx.lineTo(r, 74); ctx.closePath(); }
+      ctx.clip();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = h < 18.5 ? '#e8a070' : h < 19.5 ? '#7a5a8a' : '#2a3466'; ctx.fillRect(246, 6, 54, 70);
+      ctx.restore();
+      if (h >= 19.5) for (let i = 0; i < 10; i++) px(ctx, 250 + Art.hash(i, 1) * 46, 10 + Art.hash(i, 2) * 30, 1, 1, '#f4f0ff');
+    }
+    // letters pile up above the tray when the inbox overflows
+    const n = S.inbox.filter(d => !d.done).length;
+    for (let i = 0; i < Math.max(0, n - 7); i++) {
+      const sx = 46 + Math.round((Art.hash(i, 1, 5) - 0.5) * 8), sy = 102 - i * 2;
+      px(ctx, sx, sy, 36, 3, RR.paper[0]); px(ctx, sx, sy, 36, 2, i % 3 ? RR.paper[4] : RR.paper[3]);
+      if (Art.hash(i, 2, 5) > 0.7) Art.disc(ctx, sx + 22, sy + 1, 1, ['#8e2a22', '#2a4a7a', '#c99a3e'][i % 3]);
+    }
+    // an empty mug shows its bottom instead of coffee
+    if (S.sips === 0) { px(ctx, 236, 119, 15, 4, '#d9d2c4'); px(ctx, 237, 122, 13, 1, '#b9b0a2'); px(ctx, 240, 120, 6, 1, '#8a5a3a'); }
+    // a red ribbon marks the planner when something is overdue
+    if (S.inbox.some(d => d.deadline != null && d.deadline <= S.day)) { px(ctx, 214, 115, 4, 16, RR.red[4]); px(ctx, 214, 129, 2, 3, RR.red[3]); px(ctx, 216, 130, 2, 2, RR.red[3]); }
+    // a candle stub on the desk for evenings
+    px(ctx, 289, 141, 9, 3, RR.brass[2]); px(ctx, 290, 141, 7, 1, RR.brass[4]);
+    px(ctx, 292, 133, 3, 8, '#efe6cf'); px(ctx, 294, 133, 1, 8, '#cfc4a8');
+  },
+  anim(ctx) {
+    const h = Scenes.hour();
+    if (S.sips > 0) for (let i = 0; i < 3; i++) { const p = (Scenes.frame * 0.25 + i * 9) % 24; px(ctx, 239 + i * 4 + Math.sin((Scenes.frame + i * 20) / 10) * 2, 115 - p, 2, 2, `rgba(255,255,255,${0.45 - p / 55})`); }
+    if (h < 18) motes(ctx, 180, 80, 110, 60, 16);
+    if (Scenes.lit()) { const f = Math.floor(Scenes.frame / 5) % 3; px(ctx, 293, 129 - (f === 1 ? 1 : 0), 1, 4, '#ffd866'); px(ctx, 293, 131, 1, 1, '#fff6c0'); }
+  },
+  light(ctx, d) {
+    const h = Scenes.hour();
+    if (h < 18) {
+      // sunlight falling from the window across the desk
+      const col = h < 9 ? '255,214,150' : h < 16 ? '255,246,220' : '255,190,120';
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      ctx.beginPath(); ctx.moveTo(248, 80); ctx.lineTo(300, 80); ctx.lineTo(268, 146); ctx.lineTo(170, 146); ctx.closePath(); ctx.clip();
+      ctx.fillStyle = `rgba(${col},0.06)`; ctx.fillRect(160, 78, 150, 70);
+      ctx.restore();
+    }
+    if (Scenes.lit()) { Art.glow(ctx, 293, 131, 90, '255,180,90', 0.2 + d * 0.35); Art.glow(ctx, 293, 131, 14, '255,220,140', 0.25); }
+  },
+  spots: () => [
+    { x: 31, y: 100, w: 61, h: 47, label: () => `Inbox (${S.inbox.filter(d => !d.done).length} unread or unfiled)`, act: () => UI.inbox() },
+    { x: 93, y: 117, w: 43, h: 28, label: 'Ledger', act: () => UI.ledger() },
+    { x: 139, y: 116, w: 85, h: 27, label: 'Day planner: deadlines', act: () => UI.planner() },
+    { x: 231, y: 115, w: 28, h: 29, label: () => S.sips ? `Sip coffee (${S.sips} left)` : 'Coffee mug (empty)', act: () => UI.sip() },
+    { x: 163, y: 59, w: 38, h: 12, label: 'Roster book', act: () => UI.roster() },
+    { x: 153, y: 71, w: 60, h: 45, label: 'Filing cabinet: archive', act: () => UI.archive() },
+    { x: 75, y: 8, w: 72, h: 92, label: 'Door: to the main hall', act: () => UI.go('hall') },
+    { x: 0, y: 0, w: 60, h: 98, label: 'Bookshelf: guild handbook and council rules', act: () => UI.rules() },
+    { x: 157, y: 7, w: 53, h: 46, label: 'Guild charter', act: () => UI.charter() },
+    { x: 240, y: 0, w: 66, h: 82, label: 'Window', act: () => UI.window() },
+  ],
+};
+
+// every scene draws through the shared compositor, using painted art when present
+for (const name of Scenes.ROOMS) {
+  const sc = Scenes[name], drawnSpots = sc.spots;
+  sc.draw = (ctx) => Scenes.usingArt(name) ? Scenes.render({ ...sc, ...sc.alt }, ctx, name) : Scenes.render(sc, ctx, name);
+  sc.spots = () => (Scenes.usingArt(name) && sc.alt.spots ? sc.alt.spots() : drawnSpots());
 }

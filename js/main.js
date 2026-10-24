@@ -27,6 +27,7 @@ Main.newGame = () => {
   };
 };
 window.addEventListener('load', () => {
+  Scenes.loadArt();
   if (!Main.load()) { Core.newGame('The Rusty Flagon'); UI.init(); Main.newGame(); }
   else UI.init();
   Scenes.loop();
