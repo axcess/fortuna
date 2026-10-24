@@ -851,6 +851,51 @@ Scenes.hall.alt = {
   ],
 };
 
+// The tavern, fitted to art/tavern.png
+Scenes.tavern.alt = {
+  key: () => [S.alePrice].join(),
+  base(ctx) {
+    ctx.drawImage(Scenes.art.tavern, 0, 0, SW, SH);
+    // prices chalked on the board: one coin per gold
+    const chalk = 'rgba(236,236,220,0.85)', price = { cheap: 1, fair: 2, steep: 3 }[S.alePrice];
+    px(ctx, 168, 62, 14, 1, chalk); px(ctx, 168, 64, 9, 1, chalk);
+    for (let i = 0; i < price; i++) Art.disc(ctx, 190 + i * 5, 63, 1, '#f4d470');
+    px(ctx, 168, 72, 18, 1, chalk); px(ctx, 168, 74, 11, 1, chalk);
+    Art.disc(ctx, 190, 73, 1, '#f4d470'); Art.disc(ctx, 195, 73, 1, '#f4d470');
+  },
+  anim(ctx) {
+    // the painted fire flickers: a pulsing glow and a few bright embers, plus sparks
+    const fl = 0.5 + 0.5 * Math.sin(Scenes.frame / 4) * Math.sin(Scenes.frame / 7.3);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    Art.disc(ctx, 112, 108, 9, `rgba(255,170,60,${0.12 + fl * 0.12})`); Art.disc(ctx, 112, 110, 5, `rgba(255,220,120,${0.1 + fl * 0.15})`);
+    ctx.restore();
+    for (let i = 0; i < 4; i++) if (Art.hash(i, Math.floor(Scenes.frame / 6)) > 0.5) px(ctx, 104 + i * 5, 112 + (i % 2) * 3, 1, 1, '#ffe8a0');
+    sparks(ctx, 112, 100, 6, 20);
+    const f = Math.floor(Scenes.frame / 5);
+    for (const [cx, cy] of [[92, 71], [124, 72], [130, 70]]) { const k = (f + cx) % 3; px(ctx, cx, cy - (k === 1 ? 1 : 0), 1, 3, '#ffd866'); px(ctx, cx, cy + 1, 1, 1, '#fff6c0'); }
+    if (S.staff.barkeep) {
+      ctx.save(); ctx.beginPath(); ctx.rect(230, 60, 60, 38); ctx.clip();
+      Scenes.person(ctx, 256, 112, { id: 98, look: { skin: '#c68642', hair: '#5a3a1a', style: 0, beard: true } }, { cloth: '#7a3a2a', apron: true });
+      ctx.restore();
+    }
+    const w = Scenes.whereabouts().tavern;
+    const seats = [[73, 165, true], [175, 158, true], [285, 170, true], [212, 113, true], [136, 168, false]];
+    Scenes.tavSpots = w.slice(0, seats.length).map((a, i) => ({ a, x: seats[i][0], y: seats[i][1], sit: seats[i][2] }));
+    for (const s of Scenes.tavSpots) Scenes.person(ctx, s.x, s.y, s.a, { sit: s.sit });
+  },
+  light(ctx, d) {
+    const f = Math.sin(Scenes.frame / 7) * 4;
+    Art.glow(ctx, 112, 108, 80 + f, '255,130,50', 0.18 + d * 0.3);
+    for (const [lx, ly] of [[84, 32], [172, 33], [250, 33]]) Art.glow(ctx, lx, ly, 28, '255,200,110', 0.1 + d * 0.3);
+  },
+  spots: () => [
+    { x: 218, y: 48, w: 92, h: 100, label: S.staff.barkeep ? `The bar: talk to ${S.staff.barkeep.name}, refill coffee` : 'The bar: refill coffee', act: () => UI.bar() },
+    { x: 160, y: 54, w: 48, h: 32, label: 'Price board: set the price of ale', act: () => UI.prices() },
+    { x: 4, y: 48, w: 38, h: 92, label: 'Door: back to the hall', act: () => UI.go('hall') },
+    ...(Scenes.tavSpots || []).map(s => ({ x: s.x - 8, y: s.y - 26, w: 17, h: 28, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
+  ],
+};
+
 // every scene draws through the shared compositor, using painted art when present
 for (const name of Scenes.ROOMS) {
   const sc = Scenes[name], drawnSpots = sc.spots;
