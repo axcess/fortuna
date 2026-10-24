@@ -718,6 +718,11 @@ Scenes.loadArt = () => {
     const img = new Image();
     img.onload = () => { Scenes.art[name] = img; delete Scenes.cache[name]; if (typeof UI !== 'undefined' && S) UI.refresh(); };
     img.src = `art/${name}.png`;   // a missing file just leaves the drawn room in place
+    for (const v of Scenes[name].alt.variants || []) {
+      const vi = new Image();
+      vi.onload = () => { Scenes.art[v] = vi; delete Scenes.cache[name]; };
+      vi.src = `art/${v}.png`;
+    }
   }
 };
 Scenes.usingArt = (name) => !!(Scenes.art[name] && Scenes[name].alt);
@@ -893,6 +898,45 @@ Scenes.tavern.alt = {
     { x: 160, y: 54, w: 48, h: 32, label: 'Price board: set the price of ale', act: () => UI.prices() },
     { x: 4, y: 48, w: 38, h: 92, label: 'Door: back to the hall', act: () => UI.go('hall') },
     ...(Scenes.tavSpots || []).map(s => ({ x: s.x - 8, y: s.y - 26, w: 17, h: 28, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
+  ],
+};
+
+// The training yard, fitted to art/yard.png; yard_2 / yard_3 show its upgrades
+Scenes.yard.alt = {
+  variants: ['yard_2', 'yard_3'],
+  key: () => [Math.floor(S.min / 30), S.fac.yard].join(),
+  base(ctx) {
+    const h = Scenes.hour();
+    const img = (S.fac.yard >= 3 && Scenes.art.yard_3) || (S.fac.yard >= 2 && Scenes.art.yard_2) || Scenes.art.yard;
+    ctx.drawImage(img, 0, 0, SW, SH);
+    // the sky warms at sunset and deepens to night; stars come out
+    if (h >= 16.5) {
+      // one smooth tint, strongest in the sky and easing off towards the ground
+      const rgb = h < 18 ? '240,176,128' : h < 19.5 ? '154,106,144' : '58,68,120';
+      const g = ctx.createLinearGradient(0, 0, 0, SH);
+      g.addColorStop(0, `rgba(${rgb},1)`); g.addColorStop(0.3, `rgba(${rgb},1)`); g.addColorStop(0.55, `rgba(${rgb},0.55)`); g.addColorStop(1, `rgba(${rgb},0.45)`);
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = g; ctx.fillRect(0, 0, SW, SH); ctx.restore();
+      // stars, only where there's open sky (not on the trees or the wall)
+      if (h >= 19.5) for (let i = 0; i < 30; i++) {
+        const x = Art.hash(i, 1, 7) * 270, y = Art.hash(i, 2, 7) * 42;
+        if ((x > 50 && x < 112 && y > 12) || x > 214) continue;
+        px(ctx, x, y, 1, 1, '#f4f0ff');
+      }
+    }
+  },
+  anim(ctx) {
+    if (S.staff.trainer) Scenes.person(ctx, 206, 124, { id: 97, look: { skin: '#8d5524', hair: '#222', style: 0, beard: true } }, { cloth: '#6a2a2a' });
+    const w = Scenes.whereabouts().yard;
+    const spots = [[150, 140], [232, 136], [112, 160], [190, 156], [262, 160], [72, 150]];
+    Scenes.yardSpots = w.slice(0, spots.length).map((a, i) => ({ a, x: spots[i][0], y: spots[i][1] }));
+    for (const s of Scenes.yardSpots) Scenes.person(ctx, s.x, s.y, s.a);
+    if (Scenes.hour() < 18) for (let i = 0; i < 2; i++) { const bx = (Scenes.frame * 0.3 + i * 140) % 360 - 20, by = 18 + i * 9 + Math.sin(Scenes.frame / 20 + i) * 2, f = Math.floor(Scenes.frame / 8 + i) % 2; px(ctx, bx, by, 2, 1, '#2a2a30'); px(ctx, bx + 3, by, 2, 1, '#2a2a30'); px(ctx, bx + 2, by + f, 1, 1, '#2a2a30'); }
+  },
+  spots: () => [
+    { x: 8, y: 64, w: 42, h: 72, label: 'Training roster: schedule sessions', act: () => UI.trainForm('yard') },
+    { x: 288, y: 33, w: 32, h: 90, label: 'Gate: back to the hall', act: () => UI.go('hall') },
+    ...(S.staff.trainer ? [{ x: 198, y: 96, w: 17, h: 30, label: `Talk to ${S.staff.trainer.name}`, act: () => UI.say(`"Give me a week with any of them and I'll make them worth twice the coin." ${S.staff.trainer.name} cracks their knuckles.`) }] : []),
+    ...(Scenes.yardSpots || []).map(s => ({ x: s.x - 8, y: s.y - 28, w: 17, h: 30, label: `Talk to ${s.a.name}`, act: () => UI.talk(s.a) })),
   ],
 };
 
