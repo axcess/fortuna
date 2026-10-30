@@ -40,34 +40,34 @@ export interface AbilityDef {
 // Magnitudes marked "×CHA" scale with the user's CHA / 50.
 export const ABILITIES: Record<string, AbilityDef> = {
   // Warrior
-  strike:      { name: 'Strike', kind: 'physical', aim: 'enemy', power: 20, cost: 0, cooldown: 0, melee: true },
-  cleave:      { name: 'Cleave', kind: 'physical', aim: 'enemyFront', power: 14, cost: 10, cooldown: 2, melee: true },
+  strike:      { name: 'Strike', kind: 'physical', aim: 'enemy', power: 23, cost: 0, cooldown: 0, melee: true },
+  cleave:      { name: 'Cleave', kind: 'physical', aim: 'enemyFront', power: 16, cost: 10, cooldown: 2, melee: true },
   taunt:       { name: 'Taunt', kind: 'utility', aim: 'self', power: 0, cost: 8, cooldown: 3, status: { id: 'taunt', turns: 2 } },
   shieldWall:  { name: 'Shield Wall', kind: 'buff', aim: 'self', power: 0, cost: 8, cooldown: 3, status: { id: 'shieldWall', turns: 2, mag: 0.4 } },
   // Paladin
-  smite:       { name: 'Smite', kind: 'physical', aim: 'enemy', power: 18, cost: 0, cooldown: 0, melee: true },
+  smite:       { name: 'Smite', kind: 'physical', aim: 'enemy', power: 21, cost: 0, cooldown: 0, melee: true },
   guard:       { name: 'Guard', kind: 'utility', aim: 'allyOther', power: 0, cost: 10, cooldown: 3, status: { id: 'guarded', turns: 2 } },
   layOnHands:  { name: 'Lay on Hands', kind: 'heal', aim: 'ally', power: 60, cost: 25, cooldown: 6, magic: true },
   auraOfCourage: { name: 'Aura of Courage', kind: 'buff', aim: 'allies', power: 0, cost: 15, cooldown: 5, magic: true, status: { id: 'courage', turns: 3, mag: 0.10 } },
   // Rogue
   stab:        { name: 'Stab', kind: 'physical', aim: 'enemy', power: 18, cost: 0, cooldown: 0, melee: true },
-  backstab:    { name: 'Backstab', kind: 'physical', aim: 'enemy', power: 24, cost: 10, cooldown: 2, melee: true, flank: true, critBonus: 20 },
+  backstab:    { name: 'Backstab', kind: 'physical', aim: 'enemy', power: 32, cost: 8, cooldown: 1, melee: true, flank: true, critBonus: 20 },
   evade:       { name: 'Evade', kind: 'buff', aim: 'self', power: 0, cost: 8, cooldown: 3, status: { id: 'evade', turns: 2, mag: 30 } },
-  poison:      { name: 'Poison', kind: 'physical', aim: 'enemy', power: 8, cost: 8, cooldown: 2, melee: true, status: { id: 'poison', turns: 3, mag: 7 } },
+  poison:      { name: 'Poison Dart', kind: 'physical', aim: 'enemy', power: 8, cost: 8, cooldown: 2, stat: 'DEX', status: { id: 'poison', turns: 3, mag: 7 } },
   // Ranger (physical, but aimed with DEX)
-  shot:        { name: 'Shot', kind: 'physical', aim: 'enemy', power: 18, cost: 0, cooldown: 0, stat: 'DEX' },
-  volley:      { name: 'Volley', kind: 'physical', aim: 'enemyRow', power: 11, cost: 12, cooldown: 3, stat: 'DEX' },
-  mark:        { name: 'Mark', kind: 'debuff', aim: 'enemy', power: 0, cost: 6, cooldown: 2, status: { id: 'marked', turns: 3, mag: 0.20 } },
+  shot:        { name: 'Shot', kind: 'physical', aim: 'enemy', power: 25, cost: 0, cooldown: 0, stat: 'DEX' },
+  volley:      { name: 'Volley', kind: 'physical', aim: 'enemyRow', power: 15, cost: 12, cooldown: 3, stat: 'DEX' },
+  mark:        { name: 'Mark', kind: 'debuff', aim: 'enemy', power: 0, cost: 6, cooldown: 2, status: { id: 'marked', turns: 3, mag: 0.30 } },
   pin:         { name: 'Pin', kind: 'physical', aim: 'enemy', power: 10, cost: 8, cooldown: 3, stat: 'DEX', status: { id: 'slowed', turns: 2, mag: 40 } },
   // Mage
-  bolt:        { name: 'Bolt', kind: 'spell', aim: 'enemy', power: 20, cost: 0, cooldown: 0, magic: true },
-  fireball:    { name: 'Fireball', kind: 'spell', aim: 'enemyArea', power: 26, cost: 20, cooldown: 3, magic: true, splash: 0.5 },
-  frostNova:   { name: 'Frost Nova', kind: 'spell', aim: 'enemyFront', power: 10, cost: 15, cooldown: 4, magic: true, status: { id: 'slowed', turns: 2, mag: 40 } },
+  bolt:        { name: 'Bolt', kind: 'spell', aim: 'enemy', power: 19, cost: 0, cooldown: 0, magic: true },
+  fireball:    { name: 'Fireball', kind: 'spell', aim: 'enemyArea', power: 22, cost: 20, cooldown: 3, magic: true, splash: 0.4 },
+  frostNova:   { name: 'Frost Nova', kind: 'spell', aim: 'enemyFront', power: 10, cost: 15, cooldown: 4, magic: true, status: { id: 'slowed', turns: 2, mag: 30 } },
   arcaneShield: { name: 'Arcane Shield', kind: 'buff', aim: 'ally', power: 30, cost: 12, cooldown: 3, magic: true, stat: 'INT', status: { id: 'shield', turns: 3 } },
   // Cleric
   mace:        { name: 'Mace', kind: 'physical', aim: 'enemy', power: 12, cost: 0, cooldown: 0, melee: true },
-  heal:        { name: 'Heal', kind: 'heal', aim: 'ally', power: 35, cost: 10, cooldown: 0, magic: true },
-  groupHeal:   { name: 'Group Heal', kind: 'heal', aim: 'allies', power: 16, cost: 22, cooldown: 3, magic: true },
+  heal:        { name: 'Heal', kind: 'heal', aim: 'ally', power: 28, cost: 10, cooldown: 0, magic: true },
+  groupHeal:   { name: 'Group Heal', kind: 'heal', aim: 'allies', power: 14, cost: 22, cooldown: 3, magic: true },
   silence:     { name: 'Silence', kind: 'debuff', aim: 'enemy', power: 0, cost: 10, cooldown: 3, magic: true, status: { id: 'silenced', turns: 2 } },
   cleanse:     { name: 'Cleanse', kind: 'utility', aim: 'ally', power: 0, cost: 8, cooldown: 2, magic: true, cleanse: true },
   // Bard
@@ -77,9 +77,9 @@ export const ABILITIES: Record<string, AbilityDef> = {
   encore:      { name: 'Encore', kind: 'utility', aim: 'allyOther', power: 0, cost: 10, cooldown: 3, gauge: 500 },
   lullaby:     { name: 'Lullaby', kind: 'debuff', aim: 'enemy', power: 0, cost: 10, cooldown: 3, magic: true, status: { id: 'asleep', turns: 1, chance: 0.5 } },
   // Necromancer
-  drain:       { name: 'Drain', kind: 'spell', aim: 'enemy', power: 16, cost: 0, cooldown: 0, magic: true, lifesteal: 0.5 },
+  drain:       { name: 'Drain', kind: 'spell', aim: 'enemy', power: 19, cost: 0, cooldown: 0, magic: true, lifesteal: 0.5 },
   raiseDead:   { name: 'Raise Dead', kind: 'summon', aim: 'self', power: 0, cost: 20, cooldown: 5, magic: true, summon: 'skeleton' },
-  curse:       { name: 'Curse', kind: 'debuff', aim: 'enemy', power: 0, cost: 10, cooldown: 2, magic: true, stat: 'INT', status: { id: 'cursed', turns: 3, mag: 8 } },
+  curse:       { name: 'Curse', kind: 'debuff', aim: 'enemy', power: 0, cost: 10, cooldown: 2, magic: true, stat: 'INT', status: { id: 'cursed', turns: 3, mag: 10 } },
   fear:        { name: 'Fear', kind: 'debuff', aim: 'enemy', power: 0, cost: 10, cooldown: 3, magic: true, status: { id: 'feared', turns: 3, mag: 25 } },
   // Monk (aimed with DEX)
   palm:        { name: 'Palm Strike', kind: 'physical', aim: 'enemy', power: 18, cost: 0, cooldown: 0, melee: true, stat: 'DEX' },
@@ -92,12 +92,12 @@ export const ABILITIES: Record<string, AbilityDef> = {
   regrowth:    { name: 'Regrowth', kind: 'heal', aim: 'ally', power: 10, cost: 10, cooldown: 2, magic: true, status: { id: 'regrowth', turns: 3 } },
   barkskin:    { name: 'Barkskin', kind: 'buff', aim: 'ally', power: 0, cost: 10, cooldown: 3, magic: true, status: { id: 'barkskin', turns: 3, mag: 25 } },
   // Summoner
-  spiritBolt:  { name: 'Spirit Bolt', kind: 'spell', aim: 'enemy', power: 16, cost: 0, cooldown: 0, magic: true },
+  spiritBolt:  { name: 'Spirit Bolt', kind: 'spell', aim: 'enemy', power: 15, cost: 0, cooldown: 0, magic: true },
   callFamiliar: { name: 'Call Familiar', kind: 'summon', aim: 'self', power: 0, cost: 20, cooldown: 6, magic: true, summon: 'familiar' },
   ward:        { name: 'Ward', kind: 'buff', aim: 'ally', power: 25, cost: 10, cooldown: 3, magic: true, stat: 'INT', status: { id: 'shield', turns: 3 } },
   // Alchemist (bombs use INT)
   acidFlask:   { name: 'Acid Flask', kind: 'spell', aim: 'enemy', power: 15, cost: 0, cooldown: 0, status: { id: 'corroded', turns: 2, mag: 15 } },
-  firebomb:    { name: 'Firebomb', kind: 'spell', aim: 'enemyArea', power: 18, cost: 18, cooldown: 3, splash: 0.5 },
+  firebomb:    { name: 'Firebomb', kind: 'spell', aim: 'enemyArea', power: 16, cost: 18, cooldown: 3, splash: 0.4 },
   draught:     { name: 'Healing Draught', kind: 'heal', aim: 'ally', power: 28, cost: 10, cooldown: 2 },
   smokeBomb:   { name: 'Smoke Bomb', kind: 'buff', aim: 'allies', power: 0, cost: 14, cooldown: 4, status: { id: 'evade', turns: 2, mag: 20 } },
   // Summons and fallbacks
@@ -107,10 +107,10 @@ export const ABILITIES: Record<string, AbilityDef> = {
 
 export interface SummonDef { name: string; basic: string; look: string | null; base: number; scale: number; tank?: boolean }
 export const SUMMONS: Record<string, SummonDef> = {
-  skeleton: { name: 'Skeleton', basic: 'claw', look: null, base: 30, scale: 0.3 },
-  golem:    { name: 'Stone Golem', basic: 'claw', look: 'fam_golem', base: 30, scale: 0.35, tank: true },
-  whelp:    { name: 'Dragon Whelp', basic: 'bolt', look: 'fam_whelp', base: 25, scale: 0.35 },
-  fox:      { name: 'Fox Spirit', basic: 'claw', look: 'fam_fox', base: 25, scale: 0.35 },
-  raven:    { name: 'Raven', basic: 'shot', look: 'fam_raven', base: 25, scale: 0.35 },
+  skeleton: { name: 'Skeleton', basic: 'claw', look: null, base: 20, scale: 0.25 },
+  golem:    { name: 'Stone Golem', basic: 'claw', look: 'fam_golem', base: 15, scale: 0.25, tank: true },
+  whelp:    { name: 'Dragon Whelp', basic: 'bolt', look: 'fam_whelp', base: 12, scale: 0.25 },
+  fox:      { name: 'Fox Spirit', basic: 'claw', look: 'fam_fox', base: 12, scale: 0.25 },
+  raven:    { name: 'Raven', basic: 'shot', look: 'fam_raven', base: 12, scale: 0.25 },
 };
 export const FAMILIARS = ['golem', 'whelp', 'fox', 'raven'];

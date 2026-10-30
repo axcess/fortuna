@@ -10,6 +10,12 @@ import type {
 
 export const GAUGE_FULL = 1000;
 export const TICK_CAP = 3000;
+/** Armor per point of CON (handoff starting point 0.6; raised in balance tuning so armored front lines hold against physical rushes). */
+export const ARMOR_PER_CON = 0.9;
+/** Spell resistance per point of WIS. */
+export const RESIST_PER_WIS = 0.4;
+/** Summons are frailer than heroes: this fraction of the usual HP formula. */
+export const SUMMON_HP = 0.3;
 
 const STANCE_DEALT: Record<Stance, number> = { aggressive: 1.15, balanced: 1, defensive: 0.9, focus: 1, protect: 1 };
 const STANCE_TAKEN: Record<Stance, number> = { aggressive: 1.10, balanced: 1, defensive: 0.85, focus: 1, protect: 1 };
@@ -91,8 +97,8 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
 
   const eff = (u: Unit, s: StatKey) => Math.min(120, u.base[s] + (u.trait === 'battleBorn' && u.actions < 3 ? 10 : 0));
   const speed = (u: Unit) => Math.max(20, 100 + eff(u, 'DEX') + mag(u, 'inspired') - mag(u, 'slowed') + (capJob(u.side) === 'bard' ? 5 : 0));
-  const armor = (u: Unit) => Math.max(0, eff(u, 'CON') * 0.6 + (u.trait === 'ironSkin' ? 15 : 0) + mag(u, 'barkskin') - mag(u, 'corroded'));
-  const resist = (u: Unit) => eff(u, 'WIS') * 0.3;
+  const armor = (u: Unit) => Math.max(0, eff(u, 'CON') * ARMOR_PER_CON + (u.trait === 'ironSkin' ? 15 : 0) + mag(u, 'barkskin') - mag(u, 'corroded'));
+  const resist = (u: Unit) => eff(u, 'WIS') * RESIST_PER_WIS;
   const discipline = (u: Unit) => {
     const cap = captain(u.side);
     let d = 50 + eff(u, 'WIS') * 0.4 + (cap ? eff(cap, 'CHA') * 0.2 : 0) + (u.personality ? PERSONALITIES[u.personality].discipline : 0);
@@ -113,7 +119,8 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
   // ---------------------------------------------------------- targeting --
   const nearestSort = (u: Unit) => (a: Unit, b: Unit) => a.row - b.row || Math.abs(a.col - u.col) - Math.abs(b.col - u.col) || a.uid - b.uid;
   const frontRow = (list: Unit[]) => Math.min(...list.map((x) => x.row));
-  const focusTarget = (side: Side) => [...alive((1 - side) as Side)].sort((a, b) => b.ovr - a.ovr || a.uid - b.uid)[0];
+  /** Focus Fire's shared target: the most wounded enemy, so the party finishes kills together. */
+  const focusTarget = (side: Side) => [...alive((1 - side) as Side)].sort((a, b) => pct(a) - pct(b) || b.ovr - a.ovr || a.uid - b.uid)[0];
 
   /** Enemies this ability may legally aim at (melee reach, then taunt). */
   const enemyReach = (u: Unit, ab: AbilityDef) => {
@@ -133,8 +140,12 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
       case 'lowestHp': return by((x) => x.hp);
       case 'highestHp': return by((x) => -x.hp);
       case 'lowestHpPct': return by(pct);
-      case 'casters': return near.find((x) => x.roles.includes('caster')) ?? near[0];
-      case 'healers': return near.find((x) => x.roles.includes('healer')) ?? near[0];
+      // "casters first" / "healers first": the most wounded one, so a party converges on the same target
+      case 'casters': case 'healers': {
+        const role = how === 'casters' ? 'caster' : 'healer';
+        const r = cands.filter((x) => x.roles.includes(role));
+        return r.length ? [...r].sort((a, b) => pct(a) - pct(b) || a.uid - b.uid)[0] : near[0];
+      }
       case 'focus': { const f = enemy ? focusTarget(u.side) : null; return f && cands.includes(f) ? f : near[0]; }
       case 'self': return cands.includes(u) ? u : enemy ? near[0] : by(pct);
       case 'bonded': { const b = u.bonded !== null ? units[u.bonded] : null; return b && cands.includes(b) ? b : enemy ? near[0] : by(pct); }
@@ -356,7 +367,7 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
     // Guard: the guardian takes the blow
     let recv = t;
     const g = status(t, 'guarded');
-    if (g && units[g.src].alive && units[g.src] !== t) recv = units[g.src];
+    if (g && !ab.flank && units[g.src].alive && units[g.src] !== t) recv = units[g.src];   // ...and past bodyguards
     const shield = status(recv, 'shield');
     if (shield) {
       const soak = Math.min(shield.mag, amount);
@@ -397,7 +408,7 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
     const s: Unit = {
       uid: units.length, side: u.side, heroId: null, name: from ? `${from.name}'s Skeleton` : `${u.name.split(' ')[0]}'s ${sd.name}`, job: 'summon',
       look: sd.look, base, roles: sd.tank ? ['tank', 'melee'] : ['melee'], basic: sd.basic, abilities: [sd.basic], rules: [], personality: null, trait: null,
-      row: cell.row, col: cell.col, hp: 0, maxHp: Math.round((100 + base.CON * 5) * 0.5), mana: 0, maxMana: 0, gauge: 0, cd: {}, statuses: [],
+      row: cell.row, col: cell.col, hp: 0, maxHp: Math.round((100 + base.CON * 5) * SUMMON_HP), mana: 0, maxMana: 0, gauge: 0, cd: {}, statuses: [],
       alive: true, summon: true, ovr: 0, actions: 0, bonded: null, lastHitBy: null, meleeTargetedAt: -1,
     };
     s.hp = s.maxHp;

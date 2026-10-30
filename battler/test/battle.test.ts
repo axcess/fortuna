@@ -136,3 +136,20 @@ describe('scouting and the ballad', () => {
     expect(ballad(r, 1)).toBeNull();
   });
 });
+
+describe('balance sanity (small sample)', () => {
+  it('has no side bias and few unfinished battles', async () => {
+    const { makeRng, mixSeed } = await import('../src/engine/rng.ts');
+    let a = 0, n = 0, capped = 0;
+    for (let i = 0; i < 300; i++) {
+      const rng = makeRng(mixSeed(5, i));
+      const mk = (name: string) => makeParty(name, Array.from({ length: 5 }, () => generateHero(rng.seed())));
+      const r = runBattle(rng.seed(), mk('A'), mk('B'));
+      if (r.reason === 'tickCap') capped++;
+      if (r.winner !== 'draw') { n++; if (r.winner === 0) a++; }
+    }
+    expect(a / n).toBeGreaterThan(0.42);
+    expect(a / n).toBeLessThan(0.58);
+    expect(capped / 300).toBeLessThan(0.05);
+  });
+});

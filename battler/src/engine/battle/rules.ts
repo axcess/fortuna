@@ -50,14 +50,14 @@ export const DEFAULT_RULES: Record<JobId, Rule[]> = {
   rogue: [
     { when: { type: 'enemyRole', role: 'caster' }, ability: 'backstab', target: 'casters' },
     { when: { type: 'enemyRole', role: 'healer' }, ability: 'backstab', target: 'healers' },
+    { when: { type: 'always' }, ability: 'poison', target: 'casters' },
     { when: { type: 'selfHpBelow', pct: 50 }, ability: 'evade', target: 'self' },
-    { when: { type: 'always' }, ability: 'poison', target: 'highestHp' },
   ],
   ranger: [
-    { when: { type: 'turnAtLeast', n: 1 }, ability: 'mark', target: 'lowestHpPct' },
-    { when: { type: 'enemiesInRow', n: 3 }, ability: 'volley', target: 'nearest' },
-    { when: { type: 'enemyRole', role: 'caster' }, ability: 'pin', target: 'casters' },
     { when: { type: 'targetHas', status: 'marked' }, ability: 'attack', target: 'lowestHp' },
+    { when: { type: 'enemiesInRow', n: 3 }, ability: 'volley', target: 'nearest' },
+    { when: { type: 'always' }, ability: 'mark', target: 'lowestHpPct' },
+    { when: { type: 'enemyRole', role: 'caster' }, ability: 'pin', target: 'casters' },
   ],
   mage: [
     { when: { type: 'enemiesInRow', n: 2 }, ability: 'fireball', target: 'nearest' },
