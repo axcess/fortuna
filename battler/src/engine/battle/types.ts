@@ -105,6 +105,7 @@ export interface BattleEvent {
   ability?: string;
   results?: Result[];
   unit?: UnitInfo;                     // for summons
+  moves?: { uid: number; row: number; col: number }[];   // units that changed place
   side?: Side;
   text: string;
 }

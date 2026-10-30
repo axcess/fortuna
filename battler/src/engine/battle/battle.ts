@@ -381,7 +381,6 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
     recv.statuses = recv.statuses.filter((s) => s.id !== 'asleep');
     const c = credit(u); if (c) c.dealt += amount;
     const tr = stats.get(recv.uid); if (tr) tr.taken += amount;
-    if (ab.lifesteal) healUnit(u, u, Math.round(amount * ab.lifesteal));
     if (recv.hp <= 0) kill(recv, u);
     return { target: recv.uid, outcome: crit ? 'crit' : 'hit', amount, hpAfter: recv.hp, redirectedFrom: recv !== t ? t.uid : undefined };
   };
@@ -429,7 +428,7 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
     const who = sourceText(u, src);
     if (plan.move) {
       u.row = plan.move.row; u.col = plan.move.col;
-      emit({ type: 'move', actor: u.uid, source: src, text: `${u.name}${who} pulls back to the ${['front', 'middle', 'back'][u.row]} row.` });
+      emit({ type: 'move', actor: u.uid, source: src, moves: [{ uid: u.uid, row: u.row, col: u.col }], text: `${u.name}${who} pulls back to the ${['front', 'middle', 'back'][u.row]} row.` });
       return;
     }
     if (plan.defend) {
@@ -449,6 +448,10 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
           if (!t.alive) break;
           const res = strike(u, t, ab, frac);
           results.push(res);
+          if (ab.lifesteal && res.amount && u.alive) {
+            const got = healUnit(u, u, Math.round(res.amount * ab.lifesteal));
+            if (got) results.push({ target: u.uid, outcome: 'heal', amount: got, hpAfter: u.hp });
+          }
           if (res.outcome !== 'miss' && t.alive) {
             if (ab.status) {
               const st = ab.status;
@@ -480,7 +483,7 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
         let m = st.mag ?? 0;
         if (['courage', 'inspired', 'dissonance', 'marked'].includes(st.id)) m *= eff(u, 'CHA') / 50;
         if (st.id === 'cursed') m *= eff(u, 'INT') / 50;
-        if (st.id === 'shield') m = ab.power * (eff(u, ab.stat ?? 'INT') / 50);
+        if (st.id === 'shield') m = Math.round(ab.power * (eff(u, ab.stat ?? 'INT') / 50));
         if (addStatus(t, st.id, st.turns, Math.round(m * 100) / 100, u)) results.push({ target: t.uid, outcome: 'status', status: st.id, hpAfter: t.hp });
         else results.push({ target: t.uid, outcome: 'resist', status: st.id, hpAfter: t.hp });
       }
@@ -532,13 +535,14 @@ export function runBattle(seed: number, partyA: Party, partyB: Party, opts: { ti
           stance[side] = c.then.stance;
           emit({ type: 'contingency', side, text: `${parties[side].name}: contingency ${i + 1} — switching to ${STANCE_NAME[c.then.stance]}.` });
         } else {
+          const moves: { uid: number; row: number; col: number }[] = [];
           for (const u of heroes.filter((x) => x.alive).sort((a, b) => b.row - a.row)) {
             for (const row of [2, 1]) {
               if (u.row >= row) break;
-              if (!friends(u).some((x) => x.row === row && x.col === u.col)) { u.row = row; break; }
+              if (!friends(u).some((x) => x.row === row && x.col === u.col)) { u.row = row; moves.push({ uid: u.uid, row, col: u.col }); break; }
             }
           }
-          emit({ type: 'contingency', side, text: `${parties[side].name}: contingency ${i + 1} — everyone falls back.` });
+          emit({ type: 'contingency', side, moves, text: `${parties[side].name}: contingency ${i + 1} — everyone falls back.` });
         }
       });
     }

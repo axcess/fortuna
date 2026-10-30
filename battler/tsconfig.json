@@ -8,9 +8,20 @@
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
-    "lib": ["ES2022", "DOM"],
-    "types": ["node"],
-    "skipLibCheck": true
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ],
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
-  "include": ["src", "scripts", "test", "ui/*.ts"]
+  "include": [
+    "src",
+    "scripts",
+    "test",
+    "ui/*.ts"
+  ]
 }
