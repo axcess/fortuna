@@ -1,0 +1,18 @@
+{
+  "name": "fantasy-tactics-auto-battler",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "rarity": "node scripts/rarity.ts",
+    "balance": "node scripts/balance.ts",
+    "build:ui": "esbuild ui/main.ts --bundle --format=esm --outfile=ui/dist/app.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.25.12",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
