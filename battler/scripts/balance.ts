@@ -88,3 +88,21 @@ console.log('  other pairings:');
 for (const [x, y] of [['rush', 'casters'], ['rush', 'divers'], ['frontline', 'divers'], ['divers', 'frontline']] as [string, string][])
   console.log(`  ${ARCH[x].name.padEnd(18)} vs    ${ARCH[y].name.padEnd(18)} ${rate(vs(x, y))}`);
 console.log(`\ntriangle: ${ok}/3 holds`);
+
+// ------------------------------------------------------------ auto-tactics --
+{
+  const { autoPlan } = await import('../src/engine/battle/planner.ts');
+  const { scout } = await import('../src/engine/battle/scout.ts');
+  let w = 0, n = 0;
+  for (let i = 0; i < M * 2; i++) {
+    const rng = makeRng(mixSeed(4242, i));
+    const heroes = Array.from({ length: 5 }, () => generateHero(rng.seed()));
+    const preset = makeParty('Preset', heroes);
+    const planned: Party = { name: 'Planned', heroes, ...autoPlan(heroes, scout(i, preset, preset)) };
+    const swap = i % 2 === 1;
+    const r = swap ? runBattle(i, preset, planned) : runBattle(i, planned, preset);
+    if (r.winner === 'draw') continue;
+    n++; if (r.winner === (swap ? 1 : 0)) w++;
+  }
+  console.log(`\nauto-tactics vs job presets, same five heroes on both sides: ${(100 * w / n).toFixed(1)}% (${n} battles)`);
+}

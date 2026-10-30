@@ -7,7 +7,12 @@ import { scout } from '../src/engine/battle/scout.ts';
 import type { Condition, Contingency, Party, Rule, Slot, Stance, TargetPick } from '../src/engine/battle/types.ts';
 import type { Hero } from '../src/engine/types.ts';
 import { JOB_TAG, esc, portrait } from './card.ts';
-import { PARTY_SIZE, fromHeroes, partyHeroes, toParty, type Save } from './state.ts';
+import { planRules } from '../src/engine/battle/planner.ts';
+import { PARTY_SIZE, fromHeroes, partyHeroes, pickAndPlan, planNow, toParty, type Save } from './state.ts';
+
+/** Reasons behind the last auto-plan, shown until the next one. */
+export let planNotes: string[] = [];
+export const setPlanNotes = (n: string[]) => { planNotes = n; };
 
 export const STANCE_INFO: Record<Stance, [string, string]> = {
   aggressive: ['Aggressive', '+15% damage dealt, +10% damage taken'],
@@ -102,6 +107,15 @@ export function tacticsHTML(s: Save, enemy: { party: Party; seed: number }, pick
   }
   const cap = heroes.find((h) => h.id === s.party.captain);
   return `<section class="tactics">
+    <div class="autobar">
+      <div><h2>Auto-tactics</h2><p class="hint">Builds formation, captain, stance, every hero's rules and contingencies from their stats, class, rank and personality, and from what your scouts can see. Change anything afterwards.</p></div>
+      <div class="autobtns">
+        <button class="stamp" data-act="plan">Plan for me</button>
+        <button class="ghost" data-act="pickplan">Pick party &amp; plan</button>
+        <label class="toggle"><input type="checkbox" id="autoplan"${s.auto ? ' checked' : ''}> Re-plan before every fight</label>
+      </div>
+      ${planNotes.length ? `<details class="whyplan" open><summary>Why this plan</summary><ul>${planNotes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></details>` : ''}
+    </div>
     <div class="tcol">
       <h2>Formation</h2>
       <p class="hint">Tap a hero, then a square, to move them. Front row faces the enemy. ${heroes.length < PARTY_SIZE ? `<b>${PARTY_SIZE - heroes.length} slot${PARTY_SIZE - heroes.length > 1 ? 's' : ''} free</b>: add heroes from the bench.` : ''}</p>
@@ -134,6 +148,7 @@ export function tacticsHTML(s: Save, enemy: { party: Party; seed: number }, pick
           <ol>${rules.map((r, i) => ruleRow(h, r, i)).join('')}</ol>
           <div class="ofoot"><span class="slots">${rules.length} / ${slots} rule slots</span>
           ${rules.length < slots ? `<button class="ghost small" data-act="add" data-hero="${h.id}">+ Rule</button>` : ''}
+          <button class="ghost small" data-act="autohero" data-hero="${h.id}">Auto</button>
           <button class="link" data-act="preset" data-hero="${h.id}">Reset to ${JOB_DEFS[h.job].name} preset</button></div>
         </div>`;
       }).join('')}
@@ -179,6 +194,16 @@ export function bindTactics(root: HTMLElement, s: Save, ui: { picked: string | n
       ui.picked = null;
     } else if (act === 'add' && hid) {
       s.party.rules[hid].push({ when: { type: 'always' }, ability: 'attack', target: 'nearest' });
+    } else if (act === 'plan') {
+      planNotes = planNow(s);
+    } else if (act === 'pickplan') {
+      planNotes = pickAndPlan(s);
+      ui.picked = null;
+    } else if (act === 'autohero' && hid) {
+      const h = heroes().find((x) => x.id === hid)!;
+      const r = planRules(h, heroes());
+      s.party.rules[hid] = r.rules;
+      planNotes = [`${h.name.split(' ')[0]}: ${r.why.join('; ')}.`];
     } else if (act === 'preset' && hid) {
       const h = heroes().find((x) => x.id === hid)!;
       s.party.rules[hid] = DEFAULT_RULES[h.job].slice(0, RULE_SLOTS[h.rank]).map((r) => ({ ...r, when: { ...r.when } }));
@@ -197,7 +222,8 @@ export function bindTactics(root: HTMLElement, s: Save, ui: { picked: string | n
   };
   root.onchange = (e) => {
     const el = e.target as HTMLInputElement | HTMLSelectElement;
-    if (el.id === 'captain') s.party.captain = el.value;
+    if (el.id === 'autoplan') s.auto = (el as HTMLInputElement).checked;
+    else if (el.id === 'captain') s.party.captain = el.value;
     else if (el.id === 'stance') s.party.stance = el.value as Stance;
     const row = el.closest<HTMLElement>('.rule');
     if (row) {

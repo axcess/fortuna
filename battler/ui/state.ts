@@ -3,6 +3,8 @@ import { autoFormation, makeParty } from '../src/engine/battle/party.ts';
 import { defaultRules } from '../src/engine/battle/rules.ts';
 import type { Contingency, Party, Rule, Slot, Stance } from '../src/engine/battle/types.ts';
 import { generateHero } from '../src/engine/hero.ts';
+import { autoPick, autoPlan } from '../src/engine/battle/planner.ts';
+import { scout } from '../src/engine/battle/scout.ts';
 import { makeRng, mixSeed } from '../src/engine/rng.ts';
 import type { Hero } from '../src/engine/types.ts';
 
@@ -24,6 +26,7 @@ export interface Save {
   losses: number;
   battles: number;
   party: PartyCfg;
+  auto?: boolean;            // re-plan automatically before every fight
 }
 
 const KEY = 'auto_battler_v1';
@@ -101,4 +104,21 @@ export function load(): Save {
 }
 export function save(s: Save) {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* fine without it */ }
+}
+
+/** Apply the auto-planner to the current party, using what the scouts can see of the next opponent. */
+export function planNow(s: Save): string[] {
+  const opp = opponent(s);
+  const heroes = partyHeroes(s);
+  if (!heroes.length) return [];
+  const p = autoPlan(heroes, scout(opp.seed, toParty(s, 'You'), opp.party));
+  Object.assign(s.party, { formation: p.formation, captain: p.captain, stance: p.stance, rules: p.rules, contingencies: p.contingencies });
+  return p.notes.map((n) => n.text);
+}
+
+/** Choose the best five (with room for a tank and a healer), then plan for them. */
+export function pickAndPlan(s: Save): string[] {
+  const pick = autoPick(s.collection, PARTY_SIZE);
+  s.party.ids = pick.heroes.map((h) => h.id);
+  return [`Party: ${pick.heroes.map((h) => `${h.name.split(' ')[0]} (${h.ovr})`).join(', ')}.`, ...pick.notes, ...planNow(s)];
 }

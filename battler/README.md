@@ -23,9 +23,26 @@ To play locally, build the UI, then serve `ui/` over HTTP (for example `python3 
 | `src/engine/data/` | Jobs, abilities, summons, traits, personalities, tier ranges, names. Balance tuning happens here |
 | `src/engine/battle/battle.ts` | The ATB battle: timeline, formation, targeting, damage, rules, stances, contingencies, discipline, event log |
 | `src/engine/battle/rules.ts` | Rule slots by rank, rule text, default rules per job |
+| `src/engine/battle/planner.ts` | Auto-tactics: formation, captain, stance, per-hero rules, contingencies and party picks, each with a reason |
 | `src/engine/battle/scout.ts`, `report.ts` | Pre-battle scouting, post-battle summary and the bard's ballad |
 | `scripts/` | `rarity.ts`, `balance.ts`, `demo.ts` |
 | `ui/` | The browser game: packs, roster, tactics editor, and `warfield.ts`, the real-time battlefield |
+
+## Auto-tactics
+
+`autoPlan(heroes, scoutReport)` builds a full plan:
+- **Formation:** the toughest heroes in front, melee and ranged in the middle, and the frailest casters and healers centred at the back, behind cover.
+- **Captain:** the highest Charisma, preferring someone out of the front line.
+- **Stance:** chosen from the party's make-up and what the scouts saw.
+- **Rules:** per hero, scored from their stats, kit and rank slots. Heal thresholds depend on how much healing the party has, self-defence triggers sooner for low-CON heroes, buffs are worth more with high Charisma, and dive targets follow the scouting.
+- **Contingencies:** up to three, each fired once.
+- **Reasons:** every choice comes with a plain-English note.
+
+`autoPick(collection)` takes the strongest five but makes room for a tank and a healer.
+
+In the game: "Plan for me", "Pick party & plan", a per-hero "Auto" button, "Auto & Fight", and an option to re-plan before every fight.
+
+With the same five heroes on both sides, the auto-plan beats the job presets in about 68% of battles. `npm run balance` reports this, and a test requires it to stay above 58%.
 
 ## The battlefield
 

@@ -7,8 +7,8 @@ import { RANKS, type Hero } from '../src/engine/types.ts';
 import { reportHTML } from './battleview.ts';
 import { WarField } from './warfield.ts';
 import { backHTML, cardHTML, esc } from './card.ts';
-import { load, newSave, openPack, opponent, partyHeroes, save, toParty, type Save } from './state.ts';
-import { bindTactics, tacticsHTML } from './tactics.ts';
+import { load, newSave, openPack, opponent, partyHeroes, planNow, save, toParty, type Save } from './state.ts';
+import { bindTactics, setPlanNotes, tacticsHTML } from './tactics.ts';
 
 type Tab = 'packs' | 'roster' | 'tactics' | 'battle';
 const TABS: [Tab, string][] = [['packs', 'Packs'], ['roster', 'Roster'], ['tactics', 'Tactics'], ['battle', 'Battle']];
@@ -40,7 +40,7 @@ function render() {
   else if (tab === 'tactics') {
     const opp = opponent(s);
     main.innerHTML = `${tacticsHTML(s, opp, picked)}
-      <div class="fightbar"><span>Next: <b>${esc(opp.party.name)}</b></span><button class="stamp big" data-go="fight">Fight</button></div>`;
+      <div class="fightbar"><span>Next: <b>${esc(opp.party.name)}</b></span><button class="ghost" data-go="autofight">Auto &amp; Fight</button><button class="stamp big" data-go="fight">Fight</button></div>`;
     const tui = { picked, rerender: () => { picked = tui.picked; render(); }, changed: () => save(s) };
     bindTactics(main.querySelector('.tactics')!, s, tui);
   } else main.innerHTML = battleHTML();
@@ -120,8 +120,9 @@ function battleHTML(): string {
     <div class="fightbar"><button class="ghost" data-go="tactics">Back to Tactics</button></div></section>`;
 }
 
-function fight() {
+function fight(plan = false) {
   if (!partyHeroes(s).length) return;
+  if (plan || s.auto) setPlanNotes(planNow(s));
   const opp = opponent(s);
   const mine = toParty(s, 'Your party');
   const r = runBattle(opp.seed, mine, opp.party);
@@ -147,6 +148,7 @@ document.addEventListener('click', (e) => {
   else if (go === 'roster') { tab = 'roster'; fresh = []; render(); }
   else if (go === 'tactics') { tab = 'tactics'; render(); }
   else if (go === 'fight') fight();
+  else if (go === 'autofight') fight(true);
   else if (go === 'closeinspect') { inspect = null; render(); }
   else if (go === 'reset') { Object.assign(s, newSave((Date.now() % 1e9) | 0)); save(s); inspect = null; fresh = []; battle = null; picked = null; render(); }
 });
