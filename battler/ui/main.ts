@@ -4,7 +4,8 @@ import { PERSONALITIES, TRAITS } from '../src/engine/data/heroes.ts';
 import { bestFit } from '../src/engine/hero.ts';
 import type { BattleResult } from '../src/engine/battle/types.ts';
 import { RANKS, type Hero } from '../src/engine/types.ts';
-import { BattleView, reportHTML } from './battleview.ts';
+import { reportHTML } from './battleview.ts';
+import { WarField } from './warfield.ts';
 import { backHTML, cardHTML, esc } from './card.ts';
 import { load, newSave, openPack, opponent, partyHeroes, save, toParty, type Save } from './state.ts';
 import { bindTactics, tacticsHTML } from './tactics.ts';
@@ -18,7 +19,7 @@ let picked: string | null = null;
 let fresh: Hero[] = [];               // the pack just opened
 let revealed = new Set<number>();
 let battle: { r: BattleResult; names: [string, string]; done: boolean } | null = null;
-let view: BattleView | null = null;
+let view: WarField | null = null;
 let rosterSort: 'ovr' | 'job' | 'rank' = 'ovr';
 let inspect: string | null = null;
 
@@ -44,7 +45,7 @@ function render() {
     bindTactics(main.querySelector('.tactics')!, s, tui);
   } else main.innerHTML = battleHTML();
   if (tab === 'battle' && battle) {
-    view = new BattleView(main.querySelector('.bview')!, battle.r, battle.names);
+    view = new WarField(main.querySelector('.bview')!, battle.r, battle.names);
     view.onDone = () => {
       if (!battle) return;
       battle.done = true;

@@ -25,7 +25,11 @@ To play locally, build the UI, then serve `ui/` over HTTP (for example `python3 
 | `src/engine/battle/rules.ts` | Rule slots by rank, rule text, default rules per job |
 | `src/engine/battle/scout.ts`, `report.ts` | Pre-battle scouting, post-battle summary and the bard's ballad |
 | `scripts/` | `rarity.ts`, `balance.ts`, `demo.ts` |
-| `ui/` | The browser game: packs, roster, tactics editor, battle viewer |
+| `ui/` | The browser game: packs, roster, tactics editor, and `warfield.ts`, the real-time battlefield |
+
+## The battlefield
+
+Battles are staged in real time, in the manner of Total War, from the engine's event log (`ui/warfield.ts`, canvas). Each hero leads a regiment whose soldiers fall as the hero's HP drops (healing gets the wounded back up). Melee regiments march out and meet their targets halfway; against archers and casters they charge into the back line. Ranged attacks loose arcing volleys, spells fly as glowing bolts and burst, and the fallen stay on the field. One engine tick is 0.12 s at 1× speed, after a short march-out. The engine decides everything, so a replay is identical.
 
 ## Where this departs from the handoff, and why
 
